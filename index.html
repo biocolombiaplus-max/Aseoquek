@@ -1027,7 +1027,7 @@ function metaTrack(event, params){
 }
 
 // ── GOOGLE SHEET LOGGER ── (no rompe nada si aún no configuraste la URL)
-var SHEET_WEBHOOK_URL = 'PEGA_TU_URL_DE_APPS_SCRIPT_AQUI';
+var SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyyvAs6Mtvseyu3YGiAwAH7iBXXTH9wbjDnhlfCi_GJLBL1WwC65yIXodnhfUku11Netg/exec';
 function logToSheet(data){
   if(!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.indexOf('PEGA_TU_URL') === 0) return;
   try{
