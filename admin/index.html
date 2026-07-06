@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QUE-K — Panel Administrativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --g:#00C896;--gd:#00A67E;--navy:#1A3A5C;--acc:#FF6B35;--gold:#FFB800;
+  --red:#E74C3C;--bg:#F0F4F8;--wh:#fff;--tx:#2D3748;--lt:#718096;
+  --bdr:#E2E8F0;--sh:0 2px 12px rgba(0,0,0,.1);--r:12px;--sw:256px;--hh:64px;
+}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh}
+
+/* ── LOGIN ───────────────────────────────────────────────────── */
+#loginPage{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,var(--navy),#0d2236)}
+.lc{background:#fff;border-radius:20px;padding:46px 38px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.3);animation:popIn .4s ease}
+@keyframes popIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.lc-logo{text-align:center;margin-bottom:28px}
+.lc-logo .ic{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--g),var(--gd));display:inline-flex;align-items:center;justify-content:center;font-size:30px;color:#fff;margin-bottom:12px}
+.lc-logo h1{font-size:26px;font-weight:800;color:var(--navy)}
+.lc-logo p{font-size:12px;color:var(--lt);margin-top:3px}
+.lf-g{margin-bottom:16px}
+.lf-g label{display:block;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.lf-inp{width:100%;padding:12px 14px;border:2px solid var(--bdr);border-radius:10px;font-size:14px;font-family:'Poppins',sans-serif;color:var(--tx);transition:border-color .2s}
+.lf-inp:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 3px rgba(0,200,150,.1)}
+.btn-login{width:100%;background:linear-gradient(135deg,var(--g),var(--gd));color:#fff;border:none;padding:14px;border-radius:10px;font-weight:700;font-size:15px;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .25s;margin-top:6px}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,200,150,.4)}
+.lerr{background:rgba(231,76,60,.08);color:var(--red);border:1px solid rgba(231,76,60,.2);border-radius:8px;padding:10px 14px;font-size:13px;margin-top:10px;display:none}
+.lcreds{margin-top:18px;padding:14px;background:var(--bg);border-radius:10px;font-size:12px;color:var(--lt);text-align:center}
+.lcreds strong{color:var(--navy)}
+
+/* ── LAYOUT ──────────────────────────────────────────────────── */
+#app{display:none;min-height:100vh}
+.sidebar{position:fixed;top:0;left:0;width:var(--sw);height:100vh;background:var(--navy);color:#fff;z-index:200;display:flex;flex-direction:column;transition:transform .3s}
+.sb-head{padding:22px 20px 18px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo{font-size:22px;font-weight:900;color:#fff;letter-spacing:-1px}
+.sb-logo span{color:var(--g)}
+.sb-sub{font-size:10px;color:rgba(255,255,255,.45);letter-spacing:1.5px;text-transform:uppercase}
+.sb-nav{padding:16px 0;flex:1;overflow-y:auto}
+.sb-section{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase;padding:12px 20px 6px;font-weight:600}
+.sb-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:rgba(255,255,255,.7);cursor:pointer;transition:all .2s;border-left:3px solid transparent;font-size:14px;font-weight:500}
+.sb-item:hover{background:rgba(255,255,255,.06);color:#fff}
+.sb-item.active{background:rgba(0,200,150,.15);color:var(--g);border-left-color:var(--g)}
+.sb-item i{width:18px;text-align:center;font-size:15px}
+.sb-item .badge{margin-left:auto;background:var(--acc);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px}
+.sb-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)}
+.sb-user{display:flex;align-items:center;gap:10px}
+.sb-av{width:36px;height:36px;border-radius:50%;background:var(--g);display:grid;place-items:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0}
+.sb-uname{font-size:13px;font-weight:600;color:#fff}
+.sb-urole{font-size:11px;color:rgba(255,255,255,.45)}
+.btn-logout{margin-left:auto;background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:16px;transition:color .2s;padding:4px}
+.btn-logout:hover{color:var(--red)}
+
+/* HEADER */
+.header{position:fixed;top:0;left:var(--sw);right:0;height:var(--hh);background:#fff;border-bottom:1px solid var(--bdr);z-index:100;display:flex;align-items:center;padding:0 28px;gap:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.h-toggle{display:none;background:none;border:none;font-size:20px;color:var(--navy);cursor:pointer;padding:4px}
+.h-title{font-size:17px;font-weight:700;color:var(--navy);flex:1}
+.h-date{font-size:12px;color:var(--lt)}
+.h-wa{background:#25D366;color:#fff;border:none;padding:8px 16px;border-radius:50px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;text-decoration:none;transition:all .2s}
+.h-wa:hover{background:#1da851}
+
+/* MAIN */
+.main{margin-left:var(--sw);padding-top:var(--hh)}
+.tab-content{display:none;padding:28px}
+.tab-content.active{display:block}
+
+/* CARDS KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:26px}
+.kpi{background:#fff;border-radius:var(--r);padding:20px;box-shadow:var(--sh);position:relative;overflow:hidden;border-left:4px solid var(--g)}
+.kpi.red{border-left-color:var(--red)}
+.kpi.gold{border-left-color:var(--gold)}
+.kpi.navy{border-left-color:var(--navy)}
+.kpi.acc{border-left-color:var(--acc)}
+.kpi-label{font-size:11px;color:var(--lt);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-val{font-size:24px;font-weight:800;color:var(--navy);line-height:1}
+.kpi-sub{font-size:11px;color:var(--lt);margin-top:4px}
+.kpi-icon{position:absolute;top:16px;right:16px;font-size:26px;opacity:.12;color:var(--navy)}
+
+/* SECTION HEADER */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.sec-hd h2{font-size:18px;font-weight:700;color:var(--navy)}
+.btn-g{background:var(--g);color:#fff;border:none;padding:9px 18px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .2s;font-family:'Poppins',sans-serif;text-decoration:none}
+.btn-g:hover{background:var(--gd);transform:translateY(-1px)}
+.btn-outline-g{background:transparent;color:var(--g);border:2px solid var(--g);padding:8px 16px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:all .2s;font-family:'Poppins',sans-serif}
+.btn-outline-g:hover{background:var(--g);color:#fff}
+.btn-red{background:var(--red);color:#fff;border:none;padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-red:hover{background:#c0392b}
+.btn-sm{padding:6px 12px;font-size:12px;border-radius:7px;border:none;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:600;transition:all .2s}
+.btn-sm.navy{background:var(--navy);color:#fff}
+.btn-sm.navy:hover{background:#0d2236}
+
+/* TABLE */
+.tbl-wrap{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.tbl-filters{padding:16px 20px;border-bottom:1px solid var(--bdr);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.tbl-filters input,.tbl-filters select{padding:8px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:13px;font-family:'Poppins',sans-serif;color:var(--tx);background:#fff}
+.tbl-filters input:focus,.tbl-filters select:focus{outline:none;border-color:var(--g)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--bg)}
+th{padding:12px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--lt);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+td{padding:12px 16px;border-top:1px solid var(--bdr);vertical-align:middle}
+tr:hover td{background:rgba(0,200,150,.03)}
+.tbl-empty{text-align:center;padding:40px;color:var(--lt);font-size:14px}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:50px;font-size:11px;font-weight:700}
+.badge.pend{background:rgba(255,184,0,.12);color:#b38600}
+.badge.conf{background:rgba(0,200,150,.12);color:var(--gd)}
+.badge.prog{background:rgba(26,58,92,.1);color:var(--navy)}
+.badge.done{background:rgba(39,174,96,.12);color:#27ae60}
+.badge.canc{background:rgba(231,76,60,.1);color:var(--red)}
+
+/* EMPLOYEE CARDS */
+.emp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-bottom:24px}
+.emp-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+.emp-top{background:linear-gradient(135deg,var(--navy),#0d2236);padding:24px;display:flex;align-items:center;gap:16px}
+.emp-ava{width:60px;height:60px;border-radius:50%;object-fit:cover;border:3px solid var(--g)}
+.emp-nm{font-size:16px;font-weight:700;color:#fff}
+.emp-role{font-size:12px;color:rgba(255,255,255,.6);margin-top:2px}
+.emp-body{padding:20px}
+.emp-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.emp-stat{text-align:center;padding:10px;background:var(--bg);border-radius:8px}
+.emp-stat .v{font-size:18px;font-weight:800;color:var(--navy);display:block}
+.emp-stat .l{font-size:10px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px}
+.emp-pay-info{background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.2);border-radius:10px;padding:14px;margin-bottom:14px}
+.emp-pay-info h4{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.pay-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;border-bottom:1px solid rgba(0,200,150,.1)}
+.pay-row:last-child{border:none}
+.pay-row .svc{color:var(--lt)}
+.pay-row .amount{font-weight:700;color:var(--g)}
+
+/* ACCOUNTING */
+.acc-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.acc-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:22px}
+.acc-card h3{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.acc-card h3 i{color:var(--g)}
+.acc-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--bdr);font-size:13px}
+.acc-row:last-child{border:none;font-weight:700;font-size:15px;padding-top:14px}
+.acc-row .lbl{color:var(--lt)}
+.acc-row .val{font-weight:600;color:var(--navy)}
+.acc-row .val.green{color:var(--g)}
+.acc-row .val.red{color:var(--red)}
+.acc-row .val.gold{color:#b38600}
+
+/* EXPENSES */
+.exp-form{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:22px;margin-bottom:20px}
+.exp-form h3{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:12px;font-weight:700;color:var(--navy);margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.inp{width:100%;padding:10px 13px;border:1.5px solid var(--bdr);border-radius:8px;font-size:13px;font-family:'Poppins',sans-serif;color:var(--tx);background:#fff;transition:border-color .2s}
+.inp:focus{outline:none;border-color:var(--g);box-shadow:0 0 0 3px rgba(0,200,150,.1)}
+.fg-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end}
+
+/* CONFIG */
+.cfg-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:24px;margin-bottom:18px}
+.cfg-card h3{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
+.cfg-card h3 i{color:var(--g)}
+.cfg-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.price-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--bdr)}
+.price-row:last-child{border:none}
+.price-row .pr-lbl{font-size:14px;font-weight:500;color:var(--tx)}
+.price-row .pr-sub{font-size:12px;color:var(--lt)}
+.price-row .pr-inp{width:130px;padding:8px 12px;border:1.5px solid var(--bdr);border-radius:8px;font-size:14px;font-weight:700;color:var(--navy);font-family:'Poppins',sans-serif;text-align:right}
+.price-row .pr-inp:focus{outline:none;border-color:var(--g)}
+
+/* TOASTS */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:13px 20px;border-radius:10px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:10px;z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{background:var(--gd)}
+.toast.error{background:var(--red)}
+.toast i{font-size:16px}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
+.modal-bg.open{display:flex}
+.modal-box{background:#fff;border-radius:18px;padding:32px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;animation:popIn .3s ease}
+.modal-box h3{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
+.modal-btns{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+/* UPCOMING */
+.upcoming-list{display:grid;gap:10px}
+.ub{background:#fff;border-radius:10px;box-shadow:var(--sh);padding:14px 18px;display:flex;align-items:center;gap:14px;border-left:4px solid var(--g)}
+.ub.today{border-left-color:var(--acc);background:rgba(255,107,53,.02)}
+.ub-date{text-align:center;min-width:50px}
+.ub-day{font-size:22px;font-weight:800;color:var(--navy);line-height:1}
+.ub-mon{font-size:10px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px}
+.ub-info{flex:1}
+.ub-client{font-size:13px;font-weight:600;color:var(--navy)}
+.ub-detail{font-size:12px;color:var(--lt);margin-top:2px}
+.ub-right{text-align:right}
+.ub-svc{font-size:12px;font-weight:700;color:var(--g)}
+.ub-turno{font-size:11px;color:var(--lt)}
+
+/* CHART */
+.chart-wrap{position:relative;padding:16px 0}
+.chart-bars{display:flex;gap:10px;align-items:flex-end;height:140px;padding:0 4px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.chart-bar{width:100%;border-radius:6px 6px 0 0;transition:all .5s ease;position:relative;cursor:pointer;min-height:4px}
+.chart-bar:hover{opacity:.85}
+.chart-bar-val{font-size:10px;font-weight:700;color:var(--navy);text-align:center}
+.chart-bar-lbl{font-size:10px;color:var(--lt);text-align:center}
+.chart-legend{display:flex;gap:16px;margin-top:12px;justify-content:center}
+.cl{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--lt)}
+.cl-dot{width:10px;height:10px;border-radius:50%}
+
+/* MOBILE OVERLAY */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:150}
+.sb-overlay.open{display:block}
+
+/* RESPONSIVE */
+@media(max-width:1100px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main{margin-left:0}
+  .header{left:0}
+  .h-toggle{display:block}
+  .kpi-row{grid-template-columns:repeat(2,1fr)}
+  .acc-grid{grid-template-columns:1fr}
+  .emp-grid{grid-template-columns:1fr}
+  .fg-row{grid-template-columns:1fr 1fr;gap:10px}
+  .cfg-row{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .kpi-row{grid-template-columns:1fr 1fr}
+  .tab-content{padding:16px}
+  .tbl-filters{flex-direction:column}
+  .fg-row{grid-template-columns:1fr}
+  table{font-size:12px}
+  th,td{padding:10px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ═════════════════════════════════════════════════════ -->
+<div id="loginPage">
+  <div class="lc">
+    <div class="lc-logo">
+      <div class="ic"><i class="fas fa-broom" style="color:#fff"></i></div>
+      <h1>QUE-K</h1>
+      <p>Panel Administrativo</p>
+    </div>
+    <div class="lf-g">
+      <label>Usuario</label>
+      <input type="text" class="lf-inp" id="lUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="lf-g">
+      <label>Contraseña</label>
+      <input type="password" class="lf-inp" id="lPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <div id="lErr" class="lerr"><i class="fas fa-exclamation-circle"></i> Usuario o contraseña incorrectos</div>
+    <button class="btn-login" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> Ingresar</button>
+    <div class="lcreds">Credenciales: <strong>admin</strong> / <strong>QuekAdmin2024</strong></div>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════════════════════ -->
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-head">
+      <div class="sb-logo">QUE-<span>K</span></div>
+      <div class="sb-sub">Panel Administrativo</div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Principal</div>
+      <div class="sb-item active" onclick="showTab('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</div>
+      <div class="sb-item" onclick="showTab('reservas')"><i class="fas fa-calendar-check"></i> Reservas <span class="badge" id="pendBadge">0</span></div>
+      <div class="sb-section">Gestión</div>
+      <div class="sb-item" onclick="showTab('empleadas')"><i class="fas fa-users"></i> Empleadas</div>
+      <div class="sb-item" onclick="showTab('contabilidad')"><i class="fas fa-chart-bar"></i> Contabilidad</div>
+      <div class="sb-item" onclick="showTab('gastos')"><i class="fas fa-receipt"></i> Gastos</div>
+      <div class="sb-section">Sistema</div>
+      <div class="sb-item" onclick="showTab('config')"><i class="fas fa-cog"></i> Configuración</div>
+      <div class="sb-item" onclick="window.open('../index.html','_blank')"><i class="fas fa-globe"></i> Ver Sitio Web</div>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-av">A</div>
+        <div><div class="sb-uname">Administrador</div><div class="sb-urole">QUE-K Aseo</div></div>
+        <button class="btn-logout" onclick="doLogout()" title="Cerrar sesión"><i class="fas fa-sign-out-alt"></i></button>
+      </div>
+    </div>
+  </div>
+  <div class="sb-overlay" id="sbOverlay" onclick="closeSidebar()"></div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <button class="h-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <div class="h-title" id="headerTitle">Dashboard</div>
+    <div class="h-date" id="headerDate"></div>
+    <a href="https://wa.me/573126014769" target="_blank" class="h-wa"><i class="fab fa-whatsapp"></i>WhatsApp</a>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+
+    <!-- ── DASHBOARD ─────────────────────────────────────────── -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="kpi-row" id="kpiRow"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+        <!-- Upcoming bookings -->
+        <div>
+          <div class="sec-hd"><h2><i class="fas fa-clock" style="color:var(--g);margin-right:7px"></i>Próximas reservas</h2><button class="btn-g" onclick="showTab('reservas')"><i class="fas fa-calendar"></i>Ver todas</button></div>
+          <div class="upcoming-list" id="upcomingList"></div>
+        </div>
+        <!-- Chart -->
+        <div>
+          <div class="sec-hd"><h2><i class="fas fa-chart-bar" style="color:var(--g);margin-right:7px"></i>Ingresos últimos 6 meses</h2></div>
+          <div style="background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:20px">
+            <div class="chart-bars" id="chartBars"></div>
+            <div class="chart-legend">
+              <div class="cl"><div class="cl-dot" style="background:var(--g)"></div>Ingresos</div>
+              <div class="cl"><div class="cl-dot" style="background:var(--red)"></div>Gastos empleadas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Pay rates info -->
+      <div style="background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:20px;margin-bottom:20px">
+        <h3 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:14px"><i class="fas fa-info-circle" style="color:var(--g);margin-right:8px"></i>Tarifas vigentes</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+          <div style="padding:16px;border-radius:10px;background:rgba(0,200,150,.06);border:1px solid rgba(0,200,150,.15);text-align:center">
+            <div style="font-size:11px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">AirBnB Express (4h)</div>
+            <div style="font-size:20px;font-weight:800;color:var(--navy)">$98.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
+            <div style="font-size:13px;color:var(--g);font-weight:600;margin-top:4px">Empleada: $40.000</div>
+            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $58.000</div>
+          </div>
+          <div style="padding:16px;border-radius:10px;background:rgba(0,200,150,.06);border:1px solid rgba(0,200,150,.15);text-align:center">
+            <div style="font-size:11px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Hogar Completo (6h)</div>
+            <div style="font-size:20px;font-weight:800;color:var(--navy)">$130.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
+            <div style="font-size:13px;color:var(--g);font-weight:600;margin-top:4px">Empleada: $60.000</div>
+            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $70.000</div>
+          </div>
+          <div style="padding:16px;border-radius:10px;background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.15);text-align:center">
+            <div style="font-size:11px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Limpieza Profunda (8h) ⭐</div>
+            <div style="font-size:20px;font-weight:800;color:var(--navy)">$165.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
+            <div style="font-size:13px;color:var(--g);font-weight:600;margin-top:4px">Empleada: $80.000</div>
+            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $85.000</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RESERVAS ───────────────────────────────────────────── -->
+    <div class="tab-content" id="tab-reservas">
+      <div class="sec-hd">
+        <h2>Gestión de Reservas</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline-g" onclick="exportCSV()"><i class="fas fa-download"></i>Exportar CSV</button>
+          <button class="btn-g" onclick="openAddBooking()"><i class="fas fa-plus"></i>Nueva reserva</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-filters">
+          <input type="text" id="searchBk" placeholder="🔍 Buscar cliente..." onkeyup="renderBookings()" style="min-width:180px">
+          <select id="filterStatus" onchange="renderBookings()">
+            <option value="">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="confirmada">Confirmada</option>
+            <option value="en curso">En curso</option>
+            <option value="completada">Completada</option>
+            <option value="cancelada">Cancelada</option>
+          </select>
+          <select id="filterEmp" onchange="renderBookings()">
+            <option value="">Todas las empleadas</option>
+            <option value="María Fernanda Suárez">María Fernanda Suárez</option>
+            <option value="Luzdary Contreras">Luzdary Contreras</option>
+          </select>
+          <input type="date" id="filterDate" onchange="renderBookings()">
+          <button class="btn-sm navy" onclick="clearFilters()"><i class="fas fa-times"></i> Limpiar</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="bkTable">
+            <thead><tr>
+              <th>#</th><th>Cliente</th><th>Teléfono</th><th>Servicio</th><th>Fecha</th><th>Turno</th><th>Dirección</th><th>Empleada</th><th>Cobro</th><th>Pago emp.</th><th>Estado</th><th>Acciones</th>
+            </tr></thead>
+            <tbody id="bkBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EMPLEADAS ──────────────────────────────────────────── -->
+    <div class="tab-content" id="tab-empleadas">
+      <div class="sec-hd"><h2>Nuestras Colaboradoras</h2></div>
+      <div class="emp-grid" id="empGrid"></div>
+      <div style="background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:22px">
+        <h3 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px"><i class="fas fa-money-bill-wave" style="color:var(--g);margin-right:8px"></i>Tabla de pagos por servicio</h3>
+        <table>
+          <thead><tr><th>Servicio</th><th>Duración</th><th>Cobro al cliente</th><th>Pago a empleada</th><th>Ganancia empresa</th><th>% empresa</th></tr></thead>
+          <tbody>
+            <tr><td><strong>AirBnB Express</strong></td><td>4 horas</td><td style="color:var(--navy);font-weight:700">$98.000</td><td style="color:var(--g);font-weight:700">$40.000</td><td style="color:var(--acc);font-weight:700">$58.000</td><td>59%</td></tr>
+            <tr><td><strong>Hogar Completo</strong></td><td>6 horas</td><td style="color:var(--navy);font-weight:700">$130.000</td><td style="color:var(--g);font-weight:700">$60.000</td><td style="color:var(--acc);font-weight:700">$70.000</td><td>54%</td></tr>
+            <tr><td><strong>Limpieza Profunda ⭐</strong></td><td>8 horas</td><td style="color:var(--navy);font-weight:700">$165.000</td><td style="color:var(--g);font-weight:700">$80.000</td><td style="color:var(--acc);font-weight:700">$85.000</td><td>52%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── CONTABILIDAD ───────────────────────────────────────── -->
+    <div class="tab-content" id="tab-contabilidad">
+      <div class="sec-hd">
+        <h2>Contabilidad</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="accMonth" onchange="renderAccounting()" class="inp" style="width:auto;padding:8px 12px">
+            <option value="0">Enero</option><option value="1">Febrero</option><option value="2">Marzo</option>
+            <option value="3">Abril</option><option value="4">Mayo</option><option value="5">Junio</option>
+            <option value="6">Julio</option><option value="7">Agosto</option><option value="8">Septiembre</option>
+            <option value="9">Octubre</option><option value="10">Noviembre</option><option value="11">Diciembre</option>
+          </select>
+          <select id="accYear" onchange="renderAccounting()" class="inp" style="width:auto;padding:8px 12px">
+            <option value="2025">2025</option><option value="2026">2026</option>
+          </select>
+          <button class="btn-outline-g" onclick="exportAccounting()"><i class="fas fa-download"></i>Exportar</button>
+        </div>
+      </div>
+
+      <!-- Summary cards -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px" id="accKpis"></div>
+
+      <div class="acc-grid">
+        <!-- Income detail -->
+        <div class="acc-card">
+          <h3><i class="fas fa-arrow-up"></i>Ingresos del período</h3>
+          <div id="accIncome"></div>
+        </div>
+        <!-- Employee pay -->
+        <div class="acc-card">
+          <h3><i class="fas fa-users"></i>Pagos a empleadas</h3>
+          <div id="accEmpPay"></div>
+        </div>
+      </div>
+
+      <!-- Expenses detail -->
+      <div class="acc-card" style="margin-bottom:20px">
+        <h3><i class="fas fa-minus-circle" style="color:var(--red)"></i>Otros gastos del período</h3>
+        <div id="accExpenses"></div>
+      </div>
+
+      <!-- Net profit breakdown per employee -->
+      <div class="acc-card">
+        <h3><i class="fas fa-chart-pie"></i>Resumen por empleada</h3>
+        <div id="accByEmp"></div>
+      </div>
+    </div>
+
+    <!-- ── GASTOS ─────────────────────────────────────────────── -->
+    <div class="tab-content" id="tab-gastos">
+      <div class="sec-hd"><h2>Registro de Gastos</h2></div>
+      <div class="exp-form">
+        <h3><i class="fas fa-plus-circle" style="color:var(--g);margin-right:8px"></i>Agregar gasto</h3>
+        <div class="fg-row">
+          <div class="fg">
+            <label>Fecha</label>
+            <input type="date" id="expDate" class="inp">
+          </div>
+          <div class="fg">
+            <label>Categoría</label>
+            <select id="expCat" class="inp">
+              <option value="Insumos">Insumos de limpieza</option>
+              <option value="Transporte">Transporte</option>
+              <option value="Publicidad">Publicidad</option>
+              <option value="Herramientas">Herramientas/Equipos</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Descripción</label>
+            <input type="text" id="expDesc" class="inp" placeholder="Ej: Desengrasante x3">
+          </div>
+          <div class="fg">
+            <label>Valor</label>
+            <input type="number" id="expAmt" class="inp" placeholder="15000" min="0">
+          </div>
+          <div class="fg" style="display:flex;align-items:flex-end">
+            <button class="btn-g" onclick="addExpense()" style="width:100%"><i class="fas fa-plus"></i>Agregar</button>
+          </div>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-filters" style="justify-content:space-between">
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <select id="expFilterCat" onchange="renderExpenses()" class="inp" style="width:auto">
+              <option value="">Todas las categorías</option>
+              <option>Insumos</option><option>Transporte</option><option>Publicidad</option><option>Herramientas</option><option>Otro</option>
+            </select>
+            <input type="month" id="expFilterMonth" onchange="renderExpenses()" class="inp" style="width:auto">
+          </div>
+          <div style="font-size:14px;font-weight:700;color:var(--navy)" id="expTotal">Total: $0</div>
+        </div>
+        <table>
+          <thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Valor</th><th></th></tr></thead>
+          <tbody id="expBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── CONFIGURACIÓN ──────────────────────────────────────── -->
+    <div class="tab-content" id="tab-config">
+      <div class="sec-hd"><h2>Configuración</h2></div>
+      <div class="cfg-card">
+        <h3><i class="fas fa-tag"></i>Precios de servicios</h3>
+        <div class="price-row"><div><div class="pr-lbl">AirBnB Express (4 horas)</div><div class="pr-sub">Pago empleada: $40.000 fijos</div></div><input type="number" class="pr-inp" id="price4h" value="98000"></div>
+        <div class="price-row"><div><div class="pr-lbl">Hogar Completo (6 horas)</div><div class="pr-sub">Pago empleada: $60.000 fijos</div></div><input type="number" class="pr-inp" id="price6h" value="130000"></div>
+        <div class="price-row"><div><div class="pr-lbl">Limpieza Profunda (8 horas)</div><div class="pr-sub">Pago empleada: $80.000 fijos</div></div><input type="number" class="pr-inp" id="price8h" value="165000"></div>
+        <div style="margin-top:14px;padding:12px;background:rgba(0,200,150,.07);border-radius:8px;font-size:12px;color:var(--lt)">
+          <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Los pagos fijos a empleadas son: 4h=$40.000 | 6h=$60.000 | 8h=$80.000. Estos no cambian con los precios de venta.
+        </div>
+        <div style="margin-top:14px"><button class="btn-g" onclick="savePrices()"><i class="fas fa-save"></i>Guardar precios</button></div>
+      </div>
+      <div class="cfg-card">
+        <h3><i class="fas fa-lock"></i>Cambiar contraseña</h3>
+        <div class="cfg-row">
+          <div class="fg"><label>Nueva contraseña</label><input type="password" id="newPass" class="inp" placeholder="Nueva contraseña"></div>
+          <div class="fg"><label>Confirmar</label><input type="password" id="confPass" class="inp" placeholder="Repetir contraseña"></div>
+        </div>
+        <button class="btn-g" onclick="changePassword()"><i class="fas fa-save"></i>Cambiar contraseña</button>
+      </div>
+      <div class="cfg-card">
+        <h3><i class="fas fa-database"></i>Datos de prueba</h3>
+        <p style="font-size:13px;color:var(--lt);margin-bottom:14px">Carga reservas y gastos de ejemplo para probar el sistema.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-g" onclick="seedData()"><i class="fas fa-seedling"></i>Cargar datos de prueba</button>
+          <button class="btn-red" onclick="clearData()"><i class="fas fa-trash"></i>Borrar todos los datos</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ADD BOOKING MODAL -->
+<div class="modal-bg" id="addBkModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-plus-circle" style="color:var(--g);margin-right:8px"></i>Nueva Reserva</h3>
+    <div class="cfg-row">
+      <div class="fg"><label>Nombre cliente <span style="color:var(--acc)">*</span></label><input type="text" id="m_name" class="inp" placeholder="Nombre completo"></div>
+      <div class="fg"><label>Teléfono <span style="color:var(--acc)">*</span></label><input type="tel" id="m_phone" class="inp" placeholder="313 000 0000"></div>
+    </div>
+    <div class="fg"><label>Servicio <span style="color:var(--acc)">*</span></label>
+      <select id="m_svc" class="inp" onchange="updateModalPay()">
+        <option value="4h">AirBnB Express (4h) — $98.000</option>
+        <option value="6h">Hogar Completo (6h) — $130.000</option>
+        <option value="8h" selected>Limpieza Profunda (8h) — $165.000</option>
+      </select>
+    </div>
+    <div class="cfg-row">
+      <div class="fg"><label>Fecha <span style="color:var(--acc)">*</span></label><input type="date" id="m_date" class="inp"></div>
+      <div class="fg"><label>Turno</label>
+        <select id="m_turno" class="inp"><option value="8am">8:00 AM</option><option value="1pm">1:00 PM</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>Dirección</label><input type="text" id="m_addr" class="inp" placeholder="Calle y número"></div>
+    <div class="cfg-row">
+      <div class="fg"><label>Barrio</label><input type="text" id="m_barrio" class="inp" placeholder="Barrio"></div>
+      <div class="fg"><label>Empleada asignada</label>
+        <select id="m_emp" class="inp"><option value="">Sin asignar</option><option value="María Fernanda Suárez">María Fernanda Suárez</option><option value="Luzdary Contreras">Luzdary Contreras</option></select>
+      </div>
+    </div>
+    <div id="m_pay_info" style="background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.15);border-radius:8px;padding:12px;font-size:13px;margin-top:4px"></div>
+    <div class="fg" style="margin-top:12px"><label>Notas</label><textarea id="m_notes" class="inp" rows="2" placeholder="Notas adicionales..."></textarea></div>
+    <div class="modal-btns">
+      <button class="btn-outline-g" onclick="closeModal('addBkModal')">Cancelar</button>
+      <button class="btn-g" onclick="saveNewBooking()"><i class="fas fa-save"></i>Guardar reserva</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS & CONFIG
+// ═══════════════════════════════════════════════════════════════
+var ADMIN_USER='admin';
+var ADMIN_PASS='QuekAdmin2024';
+var BK_KEY='quek_bookings';
+var EXP_KEY='quek_expenses';
+var CFG_KEY='quek_config';
+
+// Pay rates per service (FIXED)
+var EMP_PAY={'4h':40000,'6h':60000,'8h':80000};
+// Default prices to client
+var SVC_PRICE={'4h':98000,'6h':120000,'8h':149000};
+var SVC_LABEL={'4h':'AirBnB Express (4h)','6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
+
+var EMPLOYEES=[
+  {id:'maria',name:'María Fernanda Suárez',role:'Especialista en Limpieza Profunda',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=faces&q=80'},
+  {id:'luzdary',name:'Luzdary Contreras',role:'Especialista AirBnB & Hogar',img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=faces&q=80'}
+];
+var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// ── Data helpers ──────────────────────────────────────────────
+function getBookings(){try{return JSON.parse(localStorage.getItem(BK_KEY)||'[]')}catch(e){return[]}}
+function setBookings(a){localStorage.setItem(BK_KEY,JSON.stringify(a))}
+function getExpenses(){try{return JSON.parse(localStorage.getItem(EXP_KEY)||'[]')}catch(e){return[]}}
+function setExpenses(a){localStorage.setItem(EXP_KEY,JSON.stringify(a))}
+function getCfg(){try{return JSON.parse(localStorage.getItem(CFG_KEY)||'{}')}catch(e){return{}}}
+function setCfg(c){localStorage.setItem(CFG_KEY,JSON.stringify(c))}
+
+function fmt(n){return'$'+Number(n||0).toLocaleString('es-CO')}
+function fmtDate(d){if(!d)return'-';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0]}
+function monthKey(d){if(!d)return'';return d.substring(0,7)}
+function empPay(svc){return EMP_PAY[svc]||0}
+function svcPrice(svc){
+  var cfg=getCfg();
+  if(svc==='4h')return parseInt(cfg.price4h||SVC_PRICE['4h']);
+  if(svc==='6h')return parseInt(cfg.price6h||SVC_PRICE['6h']);
+  return parseInt(cfg.price8h||SVC_PRICE['8h']);
+}
+function netProfit(svc){return svcPrice(svc)-empPay(svc)}
+
+// ── Auth ──────────────────────────────────────────────────────
+function doLogin(){
+  var u=document.getElementById('lUser').value.trim();
+  var p=document.getElementById('lPass').value;
+  var cfg=getCfg();
+  var correctPass=cfg.adminPass||ADMIN_PASS;
+  if(u===ADMIN_USER&&p===correctPass){
+    sessionStorage.setItem('quek_admin','1');
+    document.getElementById('loginPage').style.display='none';
+    document.getElementById('app').style.display='block';
+    initApp();
+  }else{
+    document.getElementById('lErr').style.display='flex';
+  }
+}
+document.getElementById('lPass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
+document.getElementById('lUser').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin()});
+
+function doLogout(){
+  sessionStorage.removeItem('quek_admin');
+  location.reload();
+}
+
+// Auto-login if session exists
+if(sessionStorage.getItem('quek_admin')==='1'){
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('app').style.display='block';
+}
+
+// ── Sidebar ───────────────────────────────────────────────────
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sbOverlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sbOverlay').classList.remove('open');
+}
+
+// ── Tabs ──────────────────────────────────────────────────────
+var TAB_TITLES={dashboard:'Dashboard',reservas:'Reservas',empleadas:'Empleadas',contabilidad:'Contabilidad',gastos:'Gastos',config:'Configuración'};
+function showTab(t){
+  document.querySelectorAll('.tab-content').forEach(function(el){el.classList.remove('active')});
+  document.querySelectorAll('.sb-item').forEach(function(el){el.classList.remove('active')});
+  document.getElementById('tab-'+t).classList.add('active');
+  document.querySelectorAll('.sb-item').forEach(function(el){
+    if(el.textContent.trim().toLowerCase().indexOf(TAB_TITLES[t].toLowerCase())!==-1)el.classList.add('active');
+  });
+  document.getElementById('headerTitle').textContent=TAB_TITLES[t];
+  closeSidebar();
+  if(t==='dashboard')renderDashboard();
+  if(t==='reservas')renderBookings();
+  if(t==='empleadas')renderEmployees();
+  if(t==='contabilidad')renderAccounting();
+  if(t==='gastos')renderExpenses();
+}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+
+// ── Toast ─────────────────────────────────────────────────────
+function toast(msg,type){
+  var t=document.getElementById('toast');
+  t.className='toast '+(type||'success');
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},3000);
+}
+
+// ── Modal close on outside click ──────────────────────────────
+document.querySelectorAll('.modal-bg').forEach(function(m){
+  m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
+});
+
+// ── INIT ──────────────────────────────────────────────────────
+function initApp(){
+  var now=new Date();
+  document.getElementById('headerDate').textContent=now.toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // set accounting month/year selectors
+  document.getElementById('accMonth').value=now.getMonth();
+  document.getElementById('accYear').value=now.getFullYear();
+  // set expense date default
+  document.getElementById('expDate').value=now.toISOString().split('T')[0];
+  // add booking modal date min
+  var tmrw=new Date();tmrw.setDate(tmrw.getDate()+1);
+  document.getElementById('m_date').min=tmrw.toISOString().split('T')[0];
+  // render dashboard
+  renderDashboard();
+  updatePendBadge();
+  updateModalPay();
+  // load saved prices
+  var cfg=getCfg();
+  if(cfg.price4h)document.getElementById('price4h').value=cfg.price4h;
+  if(cfg.price6h)document.getElementById('price6h').value=cfg.price6h;
+  if(cfg.price8h)document.getElementById('price8h').value=cfg.price8h;
+}
+
+function updatePendBadge(){
+  var pend=getBookings().filter(function(b){return b.status==='pendiente'}).length;
+  document.getElementById('pendBadge').textContent=pend;
+  document.getElementById('pendBadge').style.display=pend>0?'':'none';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════
+function renderDashboard(){
+  var bks=getBookings();
+  var exps=getExpenses();
+  var now=new Date();
+  var todayStr=now.toISOString().split('T')[0];
+  var thisMonth=now.getFullYear()+'-'+(String(now.getMonth()+1).padStart(2,'0'));
+
+  var todayBks=bks.filter(function(b){return b.date===todayStr&&b.status!=='cancelada'});
+  var weekBks=bks.filter(function(b){
+    if(b.status==='cancelada')return false;
+    var d=new Date(b.date+'T12:00:00');
+    var diff=(d-now)/(1000*60*60*24);
+    return diff>=-1&&diff<=7;
+  });
+  var monthBks=bks.filter(function(b){return monthKey(b.date)===thisMonth&&b.status==='completada'});
+  var monthIncome=monthBks.reduce(function(s,b){return s+svcPrice(b.service)},0);
+  var monthEmpPay=monthBks.reduce(function(s,b){return s+empPay(b.service)},0);
+  var monthExpOther=exps.filter(function(e){return e.date&&e.date.startsWith(thisMonth)}).reduce(function(s,e){return s+Number(e.amount||0)},0);
+  var monthNet=monthIncome-monthEmpPay-monthExpOther;
+
+  document.getElementById('kpiRow').innerHTML=
+    kpiCard('Reservas hoy','g',todayBks.length,'turnos programados','fa-calendar-day')+
+    kpiCard('Esta semana','navy',weekBks.length,'próximas reservas','fa-calendar-week')+
+    kpiCard('Ingresos del mes','g',fmt(monthIncome),'completados','fa-arrow-up')+
+    kpiCard('Pagos empleadas','acc',fmt(monthEmpPay),'este mes','fa-users','acc')+
+    kpiCard('Ganancia neta','g',fmt(monthNet>0?monthNet:0),'este mes','fa-chart-line');
+
+  // Upcoming
+  var upcoming=bks.filter(function(b){
+    if(b.status==='cancelada')return false;
+    var d=new Date(b.date+'T12:00:00');
+    return d>=new Date(todayStr+'T00:00:00');
+  }).sort(function(a,b){return a.date.localeCompare(b.date)||a.turno.localeCompare(b.turno)}).slice(0,6);
+
+  var ul=document.getElementById('upcomingList');
+  if(!upcoming.length){ul.innerHTML='<div style="background:#fff;border-radius:10px;padding:24px;text-align:center;color:var(--lt);box-shadow:var(--sh)">No hay reservas próximas</div>';return}
+  ul.innerHTML=upcoming.map(function(b){
+    var d=new Date(b.date+'T12:00:00');
+    var isToday=b.date===todayStr;
+    return'<div class="ub'+(isToday?' today':'')+'">'+
+      '<div class="ub-date"><div class="ub-day">'+d.getDate()+'</div><div class="ub-mon">'+MONTHS[d.getMonth()].substr(0,3)+'</div></div>'+
+      '<div class="ub-info"><div class="ub-client"><i class="fas fa-user" style="font-size:11px;margin-right:4px;color:var(--g)"></i>'+b.name+(isToday?' <span style="background:var(--acc);color:#fff;font-size:10px;padding:2px 7px;border-radius:50px;font-weight:700;margin-left:5px">HOY</span>':'')+'</div>'+
+      '<div class="ub-detail"><i class="fas fa-map-marker-alt" style="font-size:10px;margin-right:3px"></i>'+b.neighborhood+' — '+(b.assignedEmployee||'Sin asignar')+'</div></div>'+
+      '<div class="ub-right"><div class="ub-svc">'+SVC_LABEL[b.service]+'</div><div class="ub-turno">'+turnoLabel(b.turno)+'</div></div></div>';
+  }).join('');
+
+  renderChart();
+}
+
+function kpiCard(lbl,color,val,sub,icon,borderColor){
+  return'<div class="kpi'+(borderColor?' '+borderColor:'')+'"><div class="kpi-label">'+lbl+'</div><div class="kpi-val">'+val+'</div><div class="kpi-sub">'+sub+'</div><i class="fas '+icon+' kpi-icon"></i></div>';
+}
+
+function renderChart(){
+  var bks=getBookings();
+  var exps=getExpenses();
+  var now=new Date();
+  var bars='';
+  var maxVal=1;
+  var data=[];
+  for(var i=5;i>=0;i--){
+    var d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    var mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    var inc=bks.filter(function(b){return monthKey(b.date)===mk&&b.status==='completada'}).reduce(function(s,b){return s+svcPrice(b.service)},0);
+    var pay=bks.filter(function(b){return monthKey(b.date)===mk&&b.status==='completada'}).reduce(function(s,b){return s+empPay(b.service)},0);
+    data.push({lbl:MONTHS[d.getMonth()].substr(0,3),inc:inc,pay:pay});
+    if(inc>maxVal)maxVal=inc;
+    if(pay>maxVal)maxVal=pay;
+  }
+  // add sample data if all zero
+  if(maxVal<=1){data=data.map(function(d,i){return{lbl:d.lbl,inc:[320000,450000,380000,520000,490000,610000][i],pay:[160000,200000,180000,240000,220000,280000][i]}});maxVal=650000}
+  var container=document.getElementById('chartBars');
+  container.innerHTML=data.map(function(d){
+    var ih=Math.round((d.inc/maxVal)*120);var ph=Math.round((d.pay/maxVal)*120);
+    return'<div class="chart-bar-wrap">'+
+      '<div class="chart-bar-val">'+fmt(d.inc).replace('$','')+'</div>'+
+      '<div style="display:flex;gap:3px;align-items:flex-end;height:120px">'+
+      '<div class="chart-bar" style="background:var(--g);height:'+ih+'px;width:18px" title="Ingresos: '+fmt(d.inc)+'"></div>'+
+      '<div class="chart-bar" style="background:var(--red);height:'+ph+'px;width:18px;opacity:.7" title="Pagos emp: '+fmt(d.pay)+'"></div>'+
+      '</div><div class="chart-bar-lbl">'+d.lbl+'</div></div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BOOKINGS
+// ═══════════════════════════════════════════════════════════════
+function renderBookings(){
+  var bks=getBookings();
+  var search=(document.getElementById('searchBk').value||'').toLowerCase();
+  var fSt=document.getElementById('filterStatus').value;
+  var fEmp=document.getElementById('filterEmp').value;
+  var fDate=document.getElementById('filterDate').value;
+
+  var filtered=bks.filter(function(b){
+    if(search&&!(b.name||'').toLowerCase().includes(search)&&!(b.neighborhood||'').toLowerCase().includes(search))return false;
+    if(fSt&&b.status!==fSt)return false;
+    if(fEmp&&(b.assignedEmployee||'').indexOf(fEmp)===-1)return false;
+    if(fDate&&b.date!==fDate)return false;
+    return true;
+  }).sort(function(a,b){return b.date.localeCompare(a.date)});
+
+  var tbody=document.getElementById('bkBody');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="12" class="tbl-empty"><i class="fas fa-inbox" style="font-size:28px;margin-bottom:10px;display:block;opacity:.3"></i>No hay reservas con esos filtros</td></tr>';return}
+
+  tbody.innerHTML=filtered.map(function(b,idx){
+    var price=svcPrice(b.service);
+    var pay=empPay(b.service);
+    return'<tr>'+
+      '<td><strong style="color:var(--lt);font-size:11px">#'+(idx+1)+'</strong></td>'+
+      '<td><strong>'+b.name+'</strong></td>'+
+      '<td><a href="https://wa.me/57'+b.phone.replace(/\D/g,'').replace(/^0/,'')+'" target="_blank" style="color:var(--g);text-decoration:none"><i class="fab fa-whatsapp"></i> '+b.phone+'</a></td>'+
+      '<td><span style="font-size:12px;font-weight:600;color:var(--navy)">'+SVC_LABEL[b.service]+'</span></td>'+
+      '<td>'+fmtDate(b.date)+'</td>'+
+      '<td><span style="background:rgba(26,58,92,.08);padding:3px 9px;border-radius:50px;font-size:12px;font-weight:600">'+turnoLabel(b.turno)+'</span></td>'+
+      '<td style="font-size:12px">'+b.address+'<br><span style="color:var(--lt)">'+b.neighborhood+'</span></td>'+
+      '<td><select class="inp" style="padding:5px 8px;font-size:12px;width:130px" onchange="assignEmp(\''+b.id+'\',this.value)">'+
+        '<option value="" '+((!b.assignedEmployee)?'selected':'')+'>Sin asignar</option>'+
+        '<option value="María Fernanda Suárez" '+((b.assignedEmployee==='María Fernanda Suárez')?'selected':'')+'>María Fernanda Suárez</option>'+
+        '<option value="Luzdary Contreras" '+((b.assignedEmployee==='Luzdary Contreras')?'selected':'')+'>Luzdary Contreras</option>'+
+      '</select></td>'+
+      '<td style="font-weight:700;color:var(--navy)">'+fmt(price)+'</td>'+
+      '<td style="font-weight:700;color:var(--g)">'+fmt(pay)+'</td>'+
+      '<td><select class="inp" style="padding:5px 8px;font-size:12px;width:120px" onchange="changeStatus(\''+b.id+'\',this.value)">'+
+        ['pendiente','confirmada','en curso','completada','cancelada'].map(function(s){return'<option value="'+s+'" '+(b.status===s?'selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'}).join('')+
+      '</select></td>'+
+      '<td><div style="display:flex;gap:5px"><button class="btn-sm navy" onclick="sendWAConfirm(\''+b.id+'\')" title="Confirmar por WA"><i class="fab fa-whatsapp"></i></button>'+
+      '<button class="btn-red btn-sm" onclick="deleteBk(\''+b.id+'\')" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>'+
+      '</tr>';
+  }).join('');
+}
+
+function assignEmp(id,emp){
+  var bks=getBookings();
+  var b=bks.find(function(x){return String(x.id)===String(id)});
+  if(b){b.assignedEmployee=emp;setBookings(bks);toast('Empleada asignada: '+(emp||'Sin asignar'))}
+}
+function changeStatus(id,status){
+  var bks=getBookings();
+  var b=bks.find(function(x){return String(x.id)===String(id)});
+  if(b){b.status=status;setBookings(bks);updatePendBadge();toast('Estado actualizado: '+status)}
+}
+function deleteBk(id){
+  if(!confirm('¿Eliminar esta reserva?'))return;
+  var bks=getBookings().filter(function(x){return String(x.id)!==String(id)});
+  setBookings(bks);renderBookings();updatePendBadge();toast('Reserva eliminada','error');
+}
+function clearFilters(){
+  document.getElementById('searchBk').value='';
+  document.getElementById('filterStatus').value='';
+  document.getElementById('filterEmp').value='';
+  document.getElementById('filterDate').value='';
+  renderBookings();
+}
+function sendWAConfirm(id){
+  var b=getBookings().find(function(x){return String(x.id)===String(id)});
+  if(!b)return;
+  var msg=encodeURIComponent('✅ *Confirmación QUE-K*\n\nHola '+b.name+', tu reserva está confirmada:\n🧹 '+SVC_LABEL[b.service]+'\n📅 '+fmtDate(b.date)+'\n⏰ '+turnoLabel(b.turno)+'\n📍 '+b.address+', '+b.neighborhood+'\n\nTu empleada llegará 30 minutos antes. ¡Gracias por confiar en QUE-K! 💚');
+  window.open('https://wa.me/57'+b.phone.replace(/\D/g,'').replace(/^0/,'')+'?text='+msg,'_blank');
+}
+function exportCSV(){
+  var bks=getBookings();
+  var rows=[['#','Cliente','Teléfono','Servicio','Fecha','Turno','Dirección','Barrio','Empleada','Cobro','Pago emp','Ganancia','Estado']];
+  bks.forEach(function(b,i){
+    rows.push([i+1,b.name,b.phone,SVC_LABEL[b.service],b.date,turnoLabel(b.turno),b.address,b.neighborhood,b.assignedEmployee||'',svcPrice(b.service),empPay(b.service),netProfit(b.service),b.status]);
+  });
+  var csv=rows.map(function(r){return r.join(',')}).join('\n');
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='quek_reservas_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click();
+  toast('CSV exportado');
+}
+
+// ── Add Booking Modal ─────────────────────────────────────────
+function openAddBooking(){
+  document.getElementById('addBkModal').classList.add('open');
+  updateModalPay();
+}
+function updateModalPay(){
+  var svc=document.getElementById('m_svc').value;
+  var price=svcPrice(svc);
+  var pay=empPay(svc);
+  document.getElementById('m_pay_info').innerHTML=
+    '<div style="display:flex;gap:16px;font-size:13px;flex-wrap:wrap">'+
+    '<span><i class="fas fa-money-bill" style="color:var(--navy);margin-right:5px"></i>Cobro al cliente: <strong style="color:var(--navy)">'+fmt(price)+'</strong></span>'+
+    '<span><i class="fas fa-user" style="color:var(--g);margin-right:5px"></i>Pago empleada: <strong style="color:var(--g)">'+fmt(pay)+'</strong></span>'+
+    '<span><i class="fas fa-chart-line" style="color:var(--acc);margin-right:5px"></i>Ganancia: <strong style="color:var(--acc)">'+fmt(price-pay)+'</strong></span></div>';
+}
+function saveNewBooking(){
+  var name=document.getElementById('m_name').value.trim();
+  var phone=document.getElementById('m_phone').value.trim();
+  var svc=document.getElementById('m_svc').value;
+  var date=document.getElementById('m_date').value;
+  var turno=document.getElementById('m_turno').value;
+  var addr=document.getElementById('m_addr').value.trim();
+  var barrio=document.getElementById('m_barrio').value.trim();
+  var emp=document.getElementById('m_emp').value;
+  var notes=document.getElementById('m_notes').value.trim();
+  if(!name||!phone){toast('Nombre y teléfono son obligatorios','error');return}
+  var bks=getBookings();
+  bks.push({id:Date.now(),name:name,phone:phone,service:svc,date:date,turno:turno,address:addr,neighborhood:barrio,assignedEmployee:emp,notes:notes,status:'confirmada',createdAt:new Date().toISOString()});
+  setBookings(bks);
+  closeModal('addBkModal');
+  renderBookings();updatePendBadge();
+  toast('Reserva creada correctamente');
+  ['m_name','m_phone','m_addr','m_barrio','m_notes'].forEach(function(id){document.getElementById(id).value=''});
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EMPLOYEES
+// ═══════════════════════════════════════════════════════════════
+function renderEmployees(){
+  var bks=getBookings();
+  var now=new Date();
+  var thisMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+
+  document.getElementById('empGrid').innerHTML=EMPLOYEES.map(function(emp){
+    var myBks=bks.filter(function(b){return(b.assignedEmployee||'').toLowerCase()===emp.name.toLowerCase()});
+    var monthDone=myBks.filter(function(b){return monthKey(b.date)===thisMonth&&b.status==='completada'});
+    var totalEarned=monthDone.reduce(function(s,b){return s+empPay(b.service)},0);
+    var totalBks=myBks.filter(function(b){return b.status!=='cancelada'}).length;
+
+    return'<div class="emp-card">'+
+      '<div class="emp-top"><img class="emp-ava" src="'+emp.img+'" alt="'+emp.name+'"><div><div class="emp-nm">'+emp.name+'</div><div class="emp-role">'+emp.role+'</div></div></div>'+
+      '<div class="emp-body">'+
+      '<div class="emp-stats">'+
+      '<div class="emp-stat"><span class="v">'+monthDone.length+'</span><span class="l">Servicios este mes</span></div>'+
+      '<div class="emp-stat"><span class="v" style="font-size:14px">'+fmt(totalEarned)+'</span><span class="l">Ganado este mes</span></div>'+
+      '<div class="emp-stat"><span class="v">'+totalBks+'</span><span class="l">Total histórico</span></div>'+
+      '</div>'+
+      '<div class="emp-pay-info"><h4>Tarifas de pago</h4>'+
+      '<div class="pay-row"><span class="svc"><i class="fas fa-bed" style="width:14px"></i> AirBnB Express (4h)</span><span class="amount">$40.000</span></div>'+
+      '<div class="pay-row"><span class="svc"><i class="fas fa-home" style="width:14px"></i> Hogar Completo (6h)</span><span class="amount">$60.000</span></div>'+
+      '<div class="pay-row"><span class="svc"><i class="fas fa-sparkles" style="width:14px"></i> Limpieza Profunda (8h)</span><span class="amount">$80.000</span></div>'+
+      '</div>'+
+      '<div style="display:flex;gap:8px"><a href="../empleada/index.html" target="_blank" class="btn-g" style="flex:1;justify-content:center;font-size:12px"><i class="fas fa-external-link-alt"></i>Ver portal</a>'+
+      '<a href="https://wa.me/573126014769" target="_blank" class="btn-outline-g" style="flex:1;justify-content:center;font-size:12px"><i class="fab fa-whatsapp"></i>WhatsApp</a></div>'+
+      '</div></div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ACCOUNTING
+// ═══════════════════════════════════════════════════════════════
+function renderAccounting(){
+  var month=parseInt(document.getElementById('accMonth').value);
+  var year=parseInt(document.getElementById('accYear').value);
+  var mk=year+'-'+String(month+1).padStart(2,'0');
+  var bks=getBookings().filter(function(b){return monthKey(b.date)===mk});
+  var exps=getExpenses().filter(function(e){return e.date&&e.date.startsWith(mk)});
+
+  var completedBks=bks.filter(function(b){return b.status==='completada'});
+  var totalIncome=completedBks.reduce(function(s,b){return s+svcPrice(b.service)},0);
+  var totalEmpPay=completedBks.reduce(function(s,b){return s+empPay(b.service)},0);
+  var totalOtherExp=exps.reduce(function(s,e){return s+Number(e.amount||0)},0);
+  var netProfitTotal=totalIncome-totalEmpPay-totalOtherExp;
+
+  // KPIs
+  document.getElementById('accKpis').innerHTML=
+    '<div class="kpi"><div class="kpi-label">Ingresos brutos</div><div class="kpi-val">'+fmt(totalIncome)+'</div><div class="kpi-sub">'+completedBks.length+' servicios completados</div><i class="fas fa-arrow-up kpi-icon"></i></div>'+
+    '<div class="kpi acc"><div class="kpi-label">Pagos empleadas</div><div class="kpi-val">'+fmt(totalEmpPay)+'</div><div class="kpi-sub">Gasto fijo por servicio</div><i class="fas fa-users kpi-icon"></i></div>'+
+    '<div class="kpi red"><div class="kpi-label">Otros gastos</div><div class="kpi-val">'+fmt(totalOtherExp)+'</div><div class="kpi-sub">Insumos, transporte, etc.</div><i class="fas fa-receipt kpi-icon"></i></div>'+
+    '<div class="kpi gold"><div class="kpi-label">Ganancia neta</div><div class="kpi-val" style="color:'+(netProfitTotal>=0?'var(--g)':'var(--red)')+'">'+fmt(netProfitTotal)+'</div><div class="kpi-sub">'+MONTHS[month]+' '+year+'</div><i class="fas fa-chart-line kpi-icon"></i></div>';
+
+  // Income by service
+  var svcGroups={'4h':{count:0,total:0},'6h':{count:0,total:0},'8h':{count:0,total:0}};
+  completedBks.forEach(function(b){if(svcGroups[b.service]){svcGroups[b.service].count++;svcGroups[b.service].total+=svcPrice(b.service)}});
+  var incHtml=Object.keys(svcGroups).map(function(k){
+    return'<div class="acc-row"><span class="lbl">'+SVC_LABEL[k]+' ('+svcGroups[k].count+' servs.)</span><span class="val green">'+fmt(svcGroups[k].total)+'</span></div>';
+  }).join('');
+  incHtml+='<div class="acc-row"><span class="lbl">TOTAL INGRESOS</span><span class="val green" style="font-size:17px">'+fmt(totalIncome)+'</span></div>';
+  if(!completedBks.length)incHtml='<div style="text-align:center;color:var(--lt);padding:20px;font-size:13px">Sin servicios completados en este período</div>';
+  document.getElementById('accIncome').innerHTML=incHtml;
+
+  // Employee pay per employee
+  var empHtml=EMPLOYEES.map(function(emp){
+    var myDone=completedBks.filter(function(b){return(b.assignedEmployee||'').toLowerCase()===emp.name.toLowerCase()});
+    var earned=myDone.reduce(function(s,b){return s+empPay(b.service)},0);
+    return'<div class="acc-row"><span class="lbl">'+emp.name+' ('+myDone.length+' servs.)</span><span class="val gold">'+fmt(earned)+'</span></div>';
+  }).join('');
+  empHtml+='<div class="acc-row"><span class="lbl">TOTAL PAGOS</span><span class="val gold" style="font-size:17px">'+fmt(totalEmpPay)+'</span></div>';
+  document.getElementById('accEmpPay').innerHTML=empHtml;
+
+  // Other expenses
+  var expHtml=exps.length?exps.map(function(e){
+    return'<div class="acc-row"><span class="lbl"><strong>'+e.category+'</strong> — '+e.description+'<br><span style="font-size:11px;color:var(--lt)">'+fmtDate(e.date)+'</span></span><span class="val red">'+fmt(e.amount)+'</span></div>';
+  }).join('')+'<div class="acc-row"><span class="lbl">TOTAL OTROS GASTOS</span><span class="val red" style="font-size:17px">'+fmt(totalOtherExp)+'</span></div>':
+  '<div style="text-align:center;color:var(--lt);padding:16px;font-size:13px">Sin gastos registrados este período</div>';
+  document.getElementById('accExpenses').innerHTML=expHtml;
+
+  // By employee summary
+  var byEmpHtml=EMPLOYEES.map(function(emp){
+    var myDone=completedBks.filter(function(b){return(b.assignedEmployee||'').toLowerCase()===emp.name.toLowerCase()});
+    var myInc=myDone.reduce(function(s,b){return s+svcPrice(b.service)},0);
+    var myPay=myDone.reduce(function(s,b){return s+empPay(b.service)},0);
+    var myNet=myInc-myPay;
+    return'<div style="background:var(--bg);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:10px">'+
+      '<img src="'+emp.img+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--g)">'+
+      '<div style="flex:1"><div style="font-weight:700;color:var(--navy);font-size:14px">'+emp.name+'</div><div style="font-size:12px;color:var(--lt)">'+myDone.length+' servicios completados</div></div>'+
+      '<div style="text-align:right;display:flex;gap:20px">'+
+      '<div style="text-align:center"><div style="font-size:12px;color:var(--lt)">Cobrado</div><div style="font-weight:700;color:var(--navy)">'+fmt(myInc)+'</div></div>'+
+      '<div style="text-align:center"><div style="font-size:12px;color:var(--lt)">Pagado</div><div style="font-weight:700;color:var(--g)">'+fmt(myPay)+'</div></div>'+
+      '<div style="text-align:center"><div style="font-size:12px;color:var(--lt)">Ganancia</div><div style="font-weight:700;color:var(--acc)">'+fmt(myNet)+'</div></div>'+
+      '</div></div>';
+  }).join('');
+  document.getElementById('accByEmp').innerHTML=byEmpHtml||'<div style="text-align:center;color:var(--lt);padding:16px">Sin datos</div>';
+}
+
+function exportAccounting(){
+  var month=parseInt(document.getElementById('accMonth').value);
+  var year=parseInt(document.getElementById('accYear').value);
+  var mk=year+'-'+String(month+1).padStart(2,'0');
+  var bks=getBookings().filter(function(b){return monthKey(b.date)===mk&&b.status==='completada'});
+  var exps=getExpenses().filter(function(e){return e.date&&e.date.startsWith(mk)});
+  var totalInc=bks.reduce(function(s,b){return s+svcPrice(b.service)},0);
+  var totalPay=bks.reduce(function(s,b){return s+empPay(b.service)},0);
+  var totalExp=exps.reduce(function(s,e){return s+Number(e.amount||0)},0);
+  var rows=[
+    ['INFORME CONTABLE QUE-K — '+MONTHS[month]+' '+year],[''],
+    ['INGRESOS'],['Servicio','Cantidad','Total cobrado','Total emp.','Ganancia']
+  ];
+  var grp={'4h':{c:0,inc:0,pay:0},'6h':{c:0,inc:0,pay:0},'8h':{c:0,inc:0,pay:0}};
+  bks.forEach(function(b){if(grp[b.service]){grp[b.service].c++;grp[b.service].inc+=svcPrice(b.service);grp[b.service].pay+=empPay(b.service)}});
+  Object.keys(grp).forEach(function(k){rows.push([SVC_LABEL[k],grp[k].c,grp[k].inc,grp[k].pay,grp[k].inc-grp[k].pay])});
+  rows.push(['TOTAL','',totalInc,totalPay,totalInc-totalPay],[''],['OTROS GASTOS'],['Fecha','Categoría','Descripción','Valor']);
+  exps.forEach(function(e){rows.push([e.date,e.category,e.description,e.amount])});
+  rows.push(['TOTAL OTROS GASTOS','','',totalExp],[''],['GANANCIA NETA','','',totalInc-totalPay-totalExp]);
+  var csv=rows.map(function(r){return r.join(',')}).join('\n');
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='quek_contabilidad_'+mk+'.csv';
+  a.click();toast('Informe exportado');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// EXPENSES
+// ═══════════════════════════════════════════════════════════════
+function renderExpenses(){
+  var exps=getExpenses();
+  var fCat=document.getElementById('expFilterCat').value;
+  var fMonth=document.getElementById('expFilterMonth').value;
+  var filtered=exps.filter(function(e){
+    if(fCat&&e.category!==fCat)return false;
+    if(fMonth&&(!e.date||!e.date.startsWith(fMonth)))return false;
+    return true;
+  }).sort(function(a,b){return b.date.localeCompare(a.date)});
+  var total=filtered.reduce(function(s,e){return s+Number(e.amount||0)},0);
+  document.getElementById('expTotal').textContent='Total: '+fmt(total);
+  var tbody=document.getElementById('expBody');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="5" class="tbl-empty"><i class="fas fa-receipt" style="font-size:24px;opacity:.3;display:block;margin-bottom:8px"></i>No hay gastos registrados</td></tr>';return}
+  tbody.innerHTML=filtered.map(function(e){
+    var cats={Insumos:'🧴',Transporte:'🚗',Publicidad:'📢',Herramientas:'🔧',Otro:'📦'};
+    return'<tr>'+
+      '<td>'+fmtDate(e.date)+'</td>'+
+      '<td><span class="badge conf">'+( cats[e.category]||'')+ ' '+e.category+'</span></td>'+
+      '<td>'+e.description+'</td>'+
+      '<td style="font-weight:700;color:var(--red)">'+fmt(e.amount)+'</td>'+
+      '<td><button class="btn-red btn-sm" onclick="deleteExp(\''+e.id+'\')"><i class="fas fa-trash"></i></button></td>'+
+      '</tr>';
+  }).join('');
+}
+function addExpense(){
+  var date=document.getElementById('expDate').value;
+  var cat=document.getElementById('expCat').value;
+  var desc=document.getElementById('expDesc').value.trim();
+  var amt=document.getElementById('expAmt').value;
+  if(!date||!desc||!amt){toast('Completa todos los campos del gasto','error');return}
+  var exps=getExpenses();
+  exps.push({id:Date.now(),date:date,category:cat,description:desc,amount:Number(amt)});
+  setExpenses(exps);
+  document.getElementById('expDesc').value='';
+  document.getElementById('expAmt').value='';
+  renderExpenses();toast('Gasto registrado');
+}
+function deleteExp(id){
+  if(!confirm('¿Eliminar este gasto?'))return;
+  setExpenses(getExpenses().filter(function(e){return String(e.id)!==String(id)}));
+  renderExpenses();toast('Gasto eliminado','error');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════
+function savePrices(){
+  var cfg=getCfg();
+  cfg.price4h=document.getElementById('price4h').value;
+  cfg.price6h=document.getElementById('price6h').value;
+  cfg.price8h=document.getElementById('price8h').value;
+  setCfg(cfg);toast('Precios guardados');
+}
+function changePassword(){
+  var np=document.getElementById('newPass').value;
+  var cp=document.getElementById('confPass').value;
+  if(!np){toast('Ingresa la nueva contraseña','error');return}
+  if(np!==cp){toast('Las contraseñas no coinciden','error');return}
+  var cfg=getCfg();cfg.adminPass=np;setCfg(cfg);
+  document.getElementById('newPass').value='';
+  document.getElementById('confPass').value='';
+  toast('Contraseña actualizada');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SEED / CLEAR
+// ═══════════════════════════════════════════════════════════════
+function seedData(){
+  if(!confirm('Esto agregará datos de prueba. ¿Continuar?'))return;
+  var now=new Date();
+  var bks=getBookings();
+  var names=[['Ana García','María Fernanda Suárez','8h','completada'],['Sandra López','Luzdary Contreras','6h','completada'],['Claudia Duarte','María Fernanda Suárez','4h','completada'],['Patricia Mora','Luzdary Contreras','8h','confirmada'],['Diana Cárdenas','María Fernanda Suárez','6h','pendiente']];
+  names.forEach(function(n,i){
+    var d=new Date(now);d.setDate(d.getDate()-i*3);
+    bks.push({id:Date.now()+i,name:n[0],phone:'313000000'+i,service:n[2],date:d.toISOString().split('T')[0],turno:i%2===0?'8am':'1pm',address:'Calle '+((i+1)*5)+' #'+i+'0-'+i+'5',neighborhood:'Barrio Ejemplo',assignedEmployee:n[1],notes:'',status:n[3],createdAt:d.toISOString()});
+  });
+  setBookings(bks);
+  var exps=getExpenses();
+  [['Insumos','Desengrasante y jabón en polvo',28000],['Transporte','Pasaje María Fernanda',4600],['Insumos','Limpia juntas y varsol',15000]].forEach(function(e,i){
+    var d=new Date(now);d.setDate(d.getDate()-i*2);
+    exps.push({id:Date.now()+100+i,date:d.toISOString().split('T')[0],category:e[0],description:e[1],amount:e[2]});
+  });
+  setExpenses(exps);
+  renderDashboard();updatePendBadge();
+  toast('Datos de prueba cargados');
+}
+function clearData(){
+  if(!confirm('¿Eliminar TODOS los datos? Esta acción no se puede deshacer.'))return;
+  localStorage.removeItem(BK_KEY);localStorage.removeItem(EXP_KEY);
+  renderDashboard();updatePendBadge();
+  toast('Todos los datos eliminados','error');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function turnoLabel(t){return t==='8am'?'8:00 AM':'1:00 PM'}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT ON LOAD
+// ═══════════════════════════════════════════════════════════════
+if(sessionStorage.getItem('quek_admin')==='1')initApp();
+</script>
+</body>
+</html>
