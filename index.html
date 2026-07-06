@@ -1026,6 +1026,15 @@ function metaTrack(event, params){
   if(typeof fbq === 'function') fbq('track', event, params || {});
 }
 
+// ── GOOGLE SHEET LOGGER ── (no rompe nada si aún no configuraste la URL)
+var SHEET_WEBHOOK_URL = 'PEGA_TU_URL_DE_APPS_SCRIPT_AQUI';
+function logToSheet(data){
+  if(!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.indexOf('PEGA_TU_URL') === 0) return;
+  try{
+    fetch(SHEET_WEBHOOK_URL, { method:'POST', mode:'no-cors', body:new URLSearchParams(data) });
+  }catch(e){}
+}
+
 // ── NAV SCROLL ──
 window.addEventListener('scroll', function(){
   document.getElementById('nav').classList.toggle('bg', window.scrollY > 60);
@@ -1118,6 +1127,7 @@ function submitBooking(e){
   localStorage.setItem('quek_bookings', JSON.stringify(bks));
 
   metaTrack('Schedule', {content_name: SVC_LABEL[selService], content_category:'Aseo profesional', value: SVC_VALUE[selService], currency:'COP'});
+  logToSheet({tipo:'Reserva', nombre:name, contacto:phone, detalle:SVC_LABEL[selService], fecha:date, turno:selTurno, direccion:addr, barrio:neigh, notas:notes});
 
   var turnoLabel = selTurno==='8am' ? '8:00 AM' : '1:00 PM';
   var dateParts = date.split('-');
@@ -1187,6 +1197,7 @@ function submitPQRSD(e){
     +'_(Enviado desde el formulario PQRSD del sitio web)_';
   window.open('https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(waMsg),'_blank');
   metaTrack('Contact', {content_name: type});
+  logToSheet({tipo:'PQRSD', nombre:name, contacto:contact, detalle:type, fecha:date, turno:'', direccion:'', barrio:'', notas:msg});
   document.getElementById('pqrsdForm').reset();
   alert('✅ Tu '+type+' fue enviada. Te respondemos en máximo 24 horas hábiles. ¡Gracias por ayudarnos a mejorar!');
 }
