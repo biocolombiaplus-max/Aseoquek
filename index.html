@@ -16,6 +16,24 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"LocalBusiness","name":"QUE-K Aseo Profesional","telephone":"+573126014769","address":{"@type":"PostalAddress","addressLocality":"Cúcuta","addressRegion":"Norte de Santander","addressCountry":"CO"},"areaServed":["Cúcuta","Los Patios","Villa del Rosario"],"aggregateRating":{"@type":"AggregateRating","ratingValue":"4.9","reviewCount":"287"}}
 </script>
+
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', 'TU_PIXEL_ID_AQUI'); // 👈 reemplaza esto por tu Pixel ID real (número de Meta Events Manager)
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=TU_PIXEL_ID_AQUI&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -355,7 +373,7 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
   <a href="#resenas" onclick="closeMob()">Reseñas</a>
   <a href="#agendar" onclick="closeMob()">Agendar</a>
   <a href="#pqrsd" onclick="closeMob()">PQRSD</a>
-  <a href="https://wa.me/573126014769" target="_blank" style="color:#25D366"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+  <a href="https://wa.me/573126014769" target="_blank" style="color:#25D366" onclick="metaTrack('Contact')"><i class="fab fa-whatsapp"></i> WhatsApp</a>
 </div>
 
 <!-- NAVBAR -->
@@ -383,7 +401,7 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
       <p>Madres cabeza de hogar con seguridad social completa, antecedentes verificados y capacitación profesional. Cúcuta · Los Patios · Villa del Rosario.</p>
       <div class="hero-btns">
         <a href="#agendar" class="btn-primary"><i class="fas fa-calendar-check"></i> Agendar ahora</a>
-        <a href="https://wa.me/573126014769" class="btn-outline" target="_blank"><i class="fab fa-whatsapp"></i> Escribir por WhatsApp</a>
+        <a href="https://wa.me/573126014769" class="btn-outline" target="_blank" onclick="metaTrack('Contact')"><i class="fab fa-whatsapp"></i> Escribir por WhatsApp</a>
       </div>
     </div>
     <div class="hero-card">
@@ -963,7 +981,7 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
 </footer>
 
 <!-- WA FLOAT -->
-<a href="https://wa.me/573126014769" class="wa-float" target="_blank" aria-label="WhatsApp">
+<a href="https://wa.me/573126014769" class="wa-float" target="_blank" aria-label="WhatsApp" onclick="metaTrack('Contact')">
   <i class="fab fa-whatsapp"></i>
   <span class="wa-tooltip">¡Escríbenos ahora!</span>
 </a>
@@ -1001,6 +1019,12 @@ var selTurno = '8am';
 var WA_NUM = '573126014769';
 var SVC_LABEL = {'4h':'AirBnB Express (4h)','6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
 var SVC_PRICE = {'4h':'$98.000','6h':'$120.000','8h':'$149.000'};
+var SVC_VALUE = {'4h':98000,'6h':120000,'8h':149000};
+
+// ── META PIXEL HELPER ── (no rompe nada si el pixel aún no está configurado)
+function metaTrack(event, params){
+  if(typeof fbq === 'function') fbq('track', event, params || {});
+}
 
 // ── NAV SCROLL ──
 window.addEventListener('scroll', function(){
@@ -1093,6 +1117,8 @@ function submitBooking(e){
   bks.push(booking);
   localStorage.setItem('quek_bookings', JSON.stringify(bks));
 
+  metaTrack('Schedule', {content_name: SVC_LABEL[selService], content_category:'Aseo profesional', value: SVC_VALUE[selService], currency:'COP'});
+
   var turnoLabel = selTurno==='8am' ? '8:00 AM' : '1:00 PM';
   var dateParts = date.split('-');
   var dateLabel = dateParts[2]+'/'+dateParts[1]+'/'+dateParts[0];
@@ -1137,6 +1163,7 @@ function notifyMe(inputId, service){
   if(!phone){ alert('Por favor ingresa tu número de WhatsApp.'); return; }
   var msg = 'Hola QUE-K! Quiero ser notificado cuando esté disponible el servicio de *'+service+'*. Mi número es: '+phone;
   window.open('https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(msg),'_blank');
+  metaTrack('Lead', {content_name: service});
   document.getElementById(inputId).value='';
   alert('¡Perfecto! Te avisaremos en cuanto esté disponible. 🙌');
 }
@@ -1159,6 +1186,7 @@ function submitPQRSD(e){
     +'*Descripción:*\n'+msg+'\n\n'
     +'_(Enviado desde el formulario PQRSD del sitio web)_';
   window.open('https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(waMsg),'_blank');
+  metaTrack('Contact', {content_name: type});
   document.getElementById('pqrsdForm').reset();
   alert('✅ Tu '+type+' fue enviada. Te respondemos en máximo 24 horas hábiles. ¡Gracias por ayudarnos a mejorar!');
 }
