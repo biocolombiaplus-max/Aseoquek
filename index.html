@@ -78,6 +78,9 @@ nav.bg .ham span{background:var(--blue)}
 .hero h1 span{color:var(--green)}
 .hero p{color:rgba(255,255,255,.8);font-size:1.05rem;line-height:1.7;margin-bottom:32px}
 .hero-btns{display:flex;gap:16px;flex-wrap:wrap}
+.hero-microtrust{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:18px;font-size:.82rem;color:rgba(255,255,255,.75)}
+.hero-microtrust i{color:var(--green)}
+.hero-microtrust span{color:rgba(255,255,255,.35)}
 .btn-primary{background:linear-gradient(135deg,var(--cta1),var(--cta2));color:#fff;padding:16px 32px;border-radius:50px;font-weight:700;font-size:1rem;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.3s;border:none;cursor:pointer;box-shadow:var(--cta-shadow);animation:ctaPulse 2.4s infinite}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:var(--cta-shadow-lg);animation:none}
 .btn-outline{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.5);padding:15px 32px;border-radius:50px;font-weight:600;font-size:1rem;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:.3s}
@@ -222,6 +225,14 @@ section{padding:80px 0}
 .avail-no{background:#f8d7da;color:#721c24;display:block}
 .btn-submit{width:100%;padding:16px;background:linear-gradient(135deg,var(--cta1),var(--cta2));color:#fff;border:none;border-radius:50px;font-family:'Poppins',sans-serif;font-size:1.05rem;font-weight:700;cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;box-shadow:var(--cta-shadow)}
 .btn-submit:hover{transform:translateY(-2px);box-shadow:var(--cta-shadow-lg)}
+.form-trust{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.form-trust span{display:flex;align-items:center;gap:6px;background:#e8faf4;color:var(--green-d);font-size:.72rem;font-weight:700;padding:6px 12px;border-radius:50px}
+.field-hint{display:flex;align-items:flex-start;gap:5px;font-size:.74rem;color:var(--gray);margin-top:6px;line-height:1.5}
+.field-hint i{margin-top:2px;color:var(--green);flex-shrink:0}
+.risk-reversal{display:flex;align-items:center;gap:10px;background:#f0fdf9;border:1px solid rgba(0,200,150,.3);border-radius:10px;padding:12px 14px;font-size:.8rem;color:var(--green-d);font-weight:600;margin-top:16px;line-height:1.5}
+.risk-reversal i{font-size:1.1rem;flex-shrink:0}
+.scarcity-note{font-size:.76rem;color:var(--gray);margin-top:8px;display:flex;align-items:center;gap:6px}
+.scarcity-note i{color:var(--orange)}
 
 /* ── COMING SOON ── */
 .coming-soon{background:var(--light)}
@@ -403,6 +414,7 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
         <a href="#agendar" class="btn-primary"><i class="fas fa-calendar-check"></i> Agendar ahora</a>
         <a href="https://wa.me/573126014769" class="btn-outline" target="_blank" onclick="metaTrack('Contact')"><i class="fab fa-whatsapp"></i> Escribir por WhatsApp</a>
       </div>
+      <div class="hero-microtrust"><i class="fas fa-circle-check"></i> Sin tarjeta, sin anticipo <span>·</span> <i class="fas fa-bolt"></i> Respondemos en minutos</div>
     </div>
     <div class="hero-card">
       <div class="hero-stats">
@@ -690,12 +702,18 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
           <div class="book-perk"><i class="fas fa-calendar-check"></i> Sin anticipo — pagas al finalizar el servicio</div>
           <div class="book-perk"><i class="fas fa-clock"></i> Turnos: 8:00 AM o 1:00 PM</div>
           <div class="book-perk"><i class="fas fa-map-marker-alt"></i> Cúcuta · Los Patios · Villa del Rosario</div>
-          <div class="book-perk"><i class="fab fa-whatsapp"></i> Confirmación inmediata por WhatsApp</div>
+          <div class="book-perk"><i class="fab fa-whatsapp"></i> Te respondemos en minutos, directo por WhatsApp</div>
           <div class="book-perk"><i class="fas fa-star"></i> Garantía de satisfacción total</div>
+          <div class="book-perk"><i class="fas fa-bolt"></i> Cupos limitados — solo 2 servicios por turno</div>
         </div>
       </div>
       <div class="book-form">
         <h3><i class="fas fa-calendar-check" style="color:var(--green)"></i> Nueva Reserva</h3>
+        <div class="form-trust">
+          <span><i class="fas fa-shield-halved"></i> Antecedentes verificados</span>
+          <span><i class="fas fa-lock"></i> Sin anticipo</span>
+          <span><i class="fas fa-medal"></i> Garantía total</span>
+        </div>
         <form id="bookForm" onsubmit="submitBooking(event)">
           <div class="form-group">
             <label>Servicio</label>
@@ -719,6 +737,7 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
             </div>
           </div>
           <div id="availMsg" class="avail-msg"></div>
+          <div class="scarcity-note"><i class="fas fa-circle-exclamation"></i> Solo atendemos 2 servicios por turno para garantizar puntualidad y calidad.</div>
           <div class="form-row">
             <div class="form-group">
               <label>Tu nombre</label>
@@ -732,6 +751,7 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
           <div class="form-group">
             <label>Dirección exacta</label>
             <input type="text" id="fAddr" placeholder="Calle 5 #12-34, Apto 301" required>
+            <span class="field-hint"><i class="fas fa-lock"></i> Solo la conoce tu empleada asignada. Nunca se comparte ni se hace pública.</span>
           </div>
           <div class="form-group">
             <label>Barrio / Sector</label>
@@ -741,6 +761,7 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
             <label>¿Algo especial que debamos saber? (opcional)</label>
             <textarea id="fNotes" rows="2" placeholder="Mascotas, áreas prioritarias, indicaciones de acceso..."></textarea>
           </div>
+          <div class="risk-reversal"><i class="fas fa-shield-halved"></i> Si no quedas 100% satisfecha, volvemos gratis a corregirlo. Cero riesgo para ti.</div>
           <button type="submit" class="btn-submit"><i class="fab fa-whatsapp"></i> Confirmar por WhatsApp</button>
         </form>
       </div>
@@ -1008,7 +1029,8 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
     <div class="modal-icon"><i class="fas fa-check"></i></div>
     <h2>¡Reserva enviada!</h2>
     <p id="modalMsg">Tu solicitud fue guardada. Se abrirá WhatsApp para confirmar con nosotros.</p>
-    <a href="#" id="modalWaBtn" class="btn-wa-modal" target="_blank"><i class="fab fa-whatsapp"></i> Abrir WhatsApp</a>
+    <a href="#" id="modalWaBtn" class="btn-wa-modal" target="_blank"><i class="fab fa-whatsapp"></i> Continuar en WhatsApp</a>
+    <p style="font-size:.76rem;color:var(--gray);margin-top:16px;line-height:1.5">¿Estás en la app de Instagram o Facebook y no pasa nada al tocar? Toca <strong>⋯</strong> arriba y elige <strong>"Abrir en el navegador"</strong>, luego intenta de nuevo.</p>
   </div>
 </div>
 
@@ -1031,7 +1053,7 @@ var SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyyvAs6Mtvseyu3
 function logToSheet(data){
   if(!SHEET_WEBHOOK_URL || SHEET_WEBHOOK_URL.indexOf('PEGA_TU_URL') === 0) return;
   try{
-    fetch(SHEET_WEBHOOK_URL, { method:'POST', mode:'no-cors', body:new URLSearchParams(data) });
+    fetch(SHEET_WEBHOOK_URL, { method:'POST', mode:'no-cors', body:new URLSearchParams(data) }).catch(function(){});
   }catch(e){}
 }
 
@@ -1145,11 +1167,11 @@ function submitBooking(e){
     +'\n¡Gracias! 😊';
 
   var waUrl = 'https://wa.me/'+WA_NUM+'?text='+encodeURIComponent(msg);
-  document.getElementById('modalMsg').textContent = '¡Listo '+name+'! Tu reserva para el '+dateLabel+' a las '+turnoLabel+' fue guardada. Abre WhatsApp para confirmar.';
+  window.open(waUrl, '_blank'); // se abre en el mismo instante del clic — necesario para que no lo bloqueen los navegadores integrados de Instagram/Facebook
+  document.getElementById('modalMsg').textContent = '¡Listo '+name+'! Tu reserva para el '+dateLabel+' a las '+turnoLabel+' fue guardada. Si WhatsApp no se abrió solo, toca el botón verde de abajo.';
   document.getElementById('modalWaBtn').href = waUrl;
   document.getElementById('modal').classList.add('open');
 
-  setTimeout(function(){ window.open(waUrl,'_blank'); }, 600);
   document.getElementById('bookForm').reset();
   setService('6h');
   setTurno('8am');
