@@ -141,8 +141,44 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--blue);ove
 .bot-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 6px;border:none;background:none;font-family:'Poppins',sans-serif;color:#adb5bd;font-size:.68rem;gap:3px;cursor:pointer;min-height:58px;transition:.2s}
 .bot-btn i{font-size:1.25rem}
 .bot-btn.on{color:var(--green)}
+.btn-change-photo{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;font-weight:600;color:var(--green-d);background:#f0fdf9;border:1px solid rgba(0,200,150,.3);border-radius:20px;padding:6px 14px;cursor:pointer;margin:0 auto 14px;width:fit-content}
 </style>
 </head>
+
+<!-- Firebase (fotos y datos de empleadas) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  authDomain: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  projectId: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  storageBucket: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  messagingSenderId: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  appId: "PEGA_TU_FIREBASE_CONFIG_AQUI"
+};
+
+if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+  window.QuekFB = {
+    configured: true,
+    getEmpleada: (id) => getDoc(doc(db, 'empleadas', id)).then(s => s.exists() ? s.data() : null),
+    saveEmpleada: (id, data) => setDoc(doc(db, 'empleadas', id), data, { merge: true }),
+    uploadPhoto: (path, file) => { const r = ref(storage, path); return uploadBytes(r, file).then(() => getDownloadURL(r)); }
+  };
+} else {
+  window.QuekFB = {
+    configured: false,
+    getEmpleada: async () => null,
+    saveEmpleada: async () => { throw new Error('Firebase no configurado todavía'); },
+    uploadPhoto: async () => { throw new Error('Firebase no configurado todavía'); }
+  };
+}
+</script>
 <body>
 <div id="app">
 
@@ -201,12 +237,15 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--blue);ove
     <div class="tab-pane" id="tab-perfil">
       <div class="prof-card">
         <img id="profPhoto" src="" alt="" class="prof-photo">
+        <label class="btn-change-photo" for="myPhotoInput"><i class="fas fa-camera"></i> Cambiar mi foto</label>
+        <input type="file" id="myPhotoInput" accept="image/*" style="display:none" onchange="changeMyPhoto(event)">
         <div class="prof-name" id="profName"></div>
         <div class="prof-role" id="profRole"></div>
         <div class="prof-tags" id="profTags"></div>
       </div>
+      <div class="banner banner-blue" id="privatePhotoNote" style="display:none"><i class="fas fa-lock"></i><div>Esta foto solo la ves tú. La que aparece en la página web para los clientes la controla el administrador.</div></div>
       <div class="info-card" id="profInfo"></div>
-      <div class="admin-note"><i class="fas fa-shield-halved"></i> Para cambios de perfil, comunícate con el administrador.</div>
+      <div class="admin-note"><i class="fas fa-shield-halved"></i> Para cambios de tus demás datos, comunícate con el administrador.</div>
     </div>
 
   </div>
@@ -440,12 +479,51 @@ function renderProfile(){
   document.getElementById('profName').textContent=emp.fullName;
   document.getElementById('profRole').textContent=emp.specialty;
   document.getElementById('profTags').innerHTML=emp.tags.map(function(t){return'<span class="prof-tag">'+t+'</span>'}).join('');
+  document.getElementById('privatePhotoNote').style.display=emp._hasPrivatePhoto?'flex':'none';
   document.getElementById('profInfo').innerHTML=
     row('fa-star','Experiencia',emp.experience)
    +row('fa-phone','Teléfono',emp.phone)
    +row('fa-envelope','Correo admin','quekcucuta@gmail.com')
    +row('fa-location-dot','Ciudad','Cúcuta, Norte de Santander')
    +row('fa-shield-halved','Estado','Empleada verificada ✅');
+}
+
+// ── CAMBIAR MI FOTO (privada, solo la ve ella) ──
+function changeMyPhoto(e){
+  var file=e.target.files[0];
+  if(!file) return;
+  if(!window.QuekFB || !window.QuekFB.configured){
+    alert('Esta función todavía no está activada. Avísale al administrador.');
+    return;
+  }
+  var previewUrl=URL.createObjectURL(file);
+  document.getElementById('profPhoto').src=previewUrl;
+  window.QuekFB.uploadPhoto('empleadas/'+empKey+'/private.jpg', file).then(function(url){
+    return window.QuekFB.saveEmpleada(empKey, {photoPrivate:url}).then(function(){ return url; });
+  }).then(function(url){
+    emp.photo=url;
+    emp._hasPrivatePhoto=true;
+    document.getElementById('hdrPhoto').src=url;
+    document.getElementById('privatePhotoNote').style.display='flex';
+  }).catch(function(err){
+    alert('No se pudo subir la foto: '+err.message);
+    document.getElementById('profPhoto').src=emp.photo;
+  });
+}
+
+// ── SINCRONIZAR CON FIREBASE (datos y foto que puso el admin) ──
+function syncEmpleadaFromFB(){
+  if(!window.QuekFB || !window.QuekFB.configured) return Promise.resolve();
+  return window.QuekFB.getEmpleada(empKey).then(function(d){
+    if(!d) return;
+    if(d.fullName) emp.fullName=d.fullName;
+    if(d.role) emp.specialty=d.role;
+    if(d.experience) emp.experience=d.experience;
+    if(d.tags) emp.tags=(typeof d.tags==='string') ? d.tags.split(',').map(function(t){return t.trim()}).filter(Boolean) : d.tags;
+    if(d.phone) emp.phone=d.phone;
+    emp.photo=d.photoPrivate||d.photoPublic||emp.photo;
+    emp._hasPrivatePhoto=!!d.photoPrivate;
+  }).catch(function(){});
 }
 
 function row(ico,label,val){
@@ -488,13 +566,15 @@ function doLogout(){
 }
 
 function showDash(){
-  document.getElementById('hdrPhoto').src=emp.photo;
-  document.getElementById('hdrName').textContent=emp.fullName;
-  renderToday(); renderStats(); renderProfile();
-  document.getElementById('loginPage').style.display='none';
-  var d=document.getElementById('dashPage');
-  d.style.display='flex'; d.style.flexDirection='column';
-  goTab('inicio');
+  syncEmpleadaFromFB().then(function(){
+    document.getElementById('hdrPhoto').src=emp.photo;
+    document.getElementById('hdrName').textContent=emp.fullName;
+    renderToday(); renderStats(); renderProfile();
+    document.getElementById('loginPage').style.display='none';
+    var d=document.getElementById('dashPage');
+    d.style.display='flex'; d.style.flexDirection='column';
+    goTab('inicio');
+  });
 }
 
 // ── INIT ──

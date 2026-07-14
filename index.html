@@ -375,6 +375,33 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
   #pqrsd .container>div[style*="grid"]{grid-template-columns:1fr!important;gap:32px!important}
 }
 </style>
+
+<!-- Firebase (fotos y datos de empleadas, sincronizado con el panel admin) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, doc, getDoc, getDocs, collection } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  authDomain: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  projectId: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  storageBucket: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  messagingSenderId: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  appId: "PEGA_TU_FIREBASE_CONFIG_AQUI"
+};
+
+if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  window.QuekFB = {
+    configured: true,
+    getEmpleada: (id) => getDoc(doc(db, 'empleadas', id)).then(s => s.exists() ? s.data() : null),
+    getAllEmpleadas: () => getDocs(collection(db, 'empleadas')).then(snap => { const out = {}; snap.forEach(d => out[d.id] = d.data()); return out; })
+  };
+} else {
+  window.QuekFB = { configured: false, getEmpleada: async () => null, getAllEmpleadas: async () => ({}) };
+}
+</script>
 </head>
 <body>
 
@@ -603,13 +630,13 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
     <div class="team-grid">
       <div class="team-card">
         <div class="team-photo">
-          <img src="https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?w=500&q=80" alt="María Suárez">
+          <img id="teamPhoto-maria" src="https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?w=500&q=80" alt="María Suárez">
           <span class="team-verified"><i class="fas fa-shield-halved"></i> Verificada</span>
         </div>
         <div class="team-info">
           <span class="team-badge"><i class="fas fa-heart"></i> Madre cabeza de hogar</span>
-          <h3>María Fernanda Suárez</h3>
-          <div class="role">Especialista en Limpieza Profunda</div>
+          <h3 id="teamName-maria">María Fernanda Suárez</h3>
+          <div class="role" id="teamRole-maria">Especialista en Limpieza Profunda</div>
           <p>5 años de experiencia. Especializada en mudanzas y limpieza post-obra. Puntual, detallista y de confianza.</p>
           <div class="team-stats">
             <div class="team-stat"><strong>142</strong><span>servicios</span></div>
@@ -624,13 +651,13 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
       </div>
       <div class="team-card">
         <div class="team-photo">
-          <img src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=500&q=80" alt="Luzdary Contreras">
+          <img id="teamPhoto-luzdary" src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=500&q=80" alt="Luzdary Contreras">
           <span class="team-verified"><i class="fas fa-shield-halved"></i> Verificada</span>
         </div>
         <div class="team-info">
           <span class="team-badge"><i class="fas fa-heart"></i> Madre cabeza de hogar</span>
-          <h3>Luzdary Contreras</h3>
-          <div class="role">Especialista AirBnB & Hogar</div>
+          <h3 id="teamName-luzdary">Luzdary Contreras</h3>
+          <div class="role" id="teamRole-luzdary">Especialista AirBnB & Hogar</div>
           <p>4 años dedicada al aseo profesional. Experta en espacios Airbnb y viviendas familiares. Amable y responsable.</p>
           <div class="team-stats">
             <div class="team-stat"><strong>118</strong><span>servicios</span></div>
@@ -1330,6 +1357,20 @@ function hideSocialProof(){
   document.getElementById('socialProof').classList.remove('show');
   sessionStorage.setItem('quek_sp_dismissed','1');
 }
+
+// ── FOTOS/DATOS DE EMPLEADAS DESDE FIREBASE (las aprueba el admin) ──
+document.addEventListener('DOMContentLoaded', function(){
+  if (!window.QuekFB || !window.QuekFB.configured) return;
+  window.QuekFB.getAllEmpleadas().then(function(data){
+    ['maria','luzdary'].forEach(function(id){
+      var d = data[id];
+      if (!d) return;
+      if (d.photoPublic) { var img = document.getElementById('teamPhoto-'+id); if (img) img.src = d.photoPublic; }
+      if (d.fullName) { var nm = document.getElementById('teamName-'+id); if (nm) nm.textContent = d.fullName; }
+      if (d.role) { var rl = document.getElementById('teamRole-'+id); if (rl) rl.textContent = d.role; }
+    });
+  }).catch(function(){});
+});
 </script>
 </body>
 </html>

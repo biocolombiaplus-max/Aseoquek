@@ -233,6 +233,43 @@ tr:hover td{background:rgba(0,200,150,.03)}
   th,td{padding:10px 12px}
 }
 </style>
+
+<!-- Firebase (fotos y datos de empleadas) -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, doc, getDoc, getDocs, setDoc, collection } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  authDomain: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  projectId: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  storageBucket: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  messagingSenderId: "PEGA_TU_FIREBASE_CONFIG_AQUI",
+  appId: "PEGA_TU_FIREBASE_CONFIG_AQUI"
+};
+
+if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const storage = getStorage(app);
+  window.QuekFB = {
+    configured: true,
+    getEmpleada: (id) => getDoc(doc(db, 'empleadas', id)).then(s => s.exists() ? s.data() : null),
+    getAllEmpleadas: () => getDocs(collection(db, 'empleadas')).then(snap => { const out = {}; snap.forEach(d => out[d.id] = d.data()); return out; }),
+    saveEmpleada: (id, data) => setDoc(doc(db, 'empleadas', id), data, { merge: true }),
+    uploadPhoto: (path, file) => { const r = ref(storage, path); return uploadBytes(r, file).then(() => getDownloadURL(r)); }
+  };
+} else {
+  window.QuekFB = {
+    configured: false,
+    getEmpleada: async () => null,
+    getAllEmpleadas: async () => ({}),
+    saveEmpleada: async () => { throw new Error('Firebase no configurado todavía'); },
+    uploadPhoto: async () => { throw new Error('Firebase no configurado todavía'); }
+  };
+}
+</script>
 </head>
 <body>
 
@@ -572,6 +609,37 @@ tr:hover td{background:rgba(0,200,150,.03)}
   </div>
 </div>
 
+<!-- EDIT EMPLOYEE MODAL -->
+<div class="modal-bg" id="editEmpModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-user-edit" style="color:var(--g);margin-right:8px"></i>Editar empleada</h3>
+    <div style="text-align:center;margin-bottom:16px">
+      <img id="ee_preview" src="" alt="" style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--g);display:block;margin:0 auto 10px">
+      <label class="btn-outline-g" style="cursor:pointer;display:inline-flex" for="ee_photo">
+        <i class="fas fa-camera"></i>Cambiar foto (visible en la página web)
+      </label>
+      <input type="file" id="ee_photo" accept="image/*" style="display:none" onchange="previewEmpPhoto(event)">
+    </div>
+    <input type="hidden" id="ee_id">
+    <div class="cfg-row">
+      <div class="fg"><label>Nombre completo</label><input type="text" id="ee_name" class="inp"></div>
+      <div class="fg"><label>Teléfono</label><input type="text" id="ee_phone" class="inp"></div>
+    </div>
+    <div class="fg"><label>Especialidad (se ve en la página web)</label><input type="text" id="ee_role" class="inp"></div>
+    <div class="cfg-row">
+      <div class="fg"><label>Experiencia</label><input type="text" id="ee_experience" class="inp" placeholder="5 años de experiencia"></div>
+      <div class="fg"><label>Etiquetas (separadas por coma)</label><input type="text" id="ee_tags" class="inp" placeholder="Hogares, Airbnb, Deep Cleaning"></div>
+    </div>
+    <div style="background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.15);border-radius:8px;padding:12px;font-size:12px;color:var(--lt);margin-top:4px">
+      <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Esta foto y estos datos se muestran en la página web pública y en el portal de la empleada. Si ella sube su propia foto desde su perfil, esa queda privada solo para ella — esta es la que ven los clientes.
+    </div>
+    <div class="modal-btns">
+      <button class="btn-outline-g" onclick="closeModal('editEmpModal')">Cancelar</button>
+      <button class="btn-g" onclick="saveEmpleadaEdit()"><i class="fas fa-save"></i>Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
 
@@ -592,9 +660,10 @@ var SVC_PRICE={'4h':98000,'6h':120000,'8h':149000};
 var SVC_LABEL={'4h':'AirBnB Express (4h)','6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
 
 var EMPLOYEES=[
-  {id:'maria',name:'María Fernanda Suárez',role:'Especialista en Limpieza Profunda',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=faces&q=80'},
-  {id:'luzdary',name:'Luzdary Contreras',role:'Especialista AirBnB & Hogar',img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=faces&q=80'}
+  {id:'maria',name:'María Fernanda Suárez',role:'Especialista en Limpieza Profunda',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=faces&q=80',experience:'5 años de experiencia',tags:'Hogares, Airbnb, Deep Cleaning, Post-obra',phone:'312 601 4769'},
+  {id:'luzdary',name:'Luzdary Contreras',role:'Especialista AirBnB & Hogar',img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=faces&q=80',experience:'4 años de experiencia',tags:'Apartamentos, Airbnb, Cocinas, Vidrios',phone:'312 601 4769'}
 ];
+var empleadasLoadedFromFB=false;
 var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 // ── Data helpers ──────────────────────────────────────────────
@@ -933,6 +1002,27 @@ function saveNewBooking(){
 // EMPLOYEES
 // ═══════════════════════════════════════════════════════════════
 function renderEmployees(){
+  if(!empleadasLoadedFromFB && window.QuekFB && window.QuekFB.configured){
+    empleadasLoadedFromFB=true;
+    window.QuekFB.getAllEmpleadas().then(function(data){
+      EMPLOYEES.forEach(function(emp){
+        var d=data[emp.id];
+        if(!d) return;
+        if(d.photoPublic) emp.img=d.photoPublic;
+        if(d.fullName) emp.name=d.fullName;
+        if(d.role) emp.role=d.role;
+        if(d.experience) emp.experience=d.experience;
+        if(d.tags) emp.tags=d.tags;
+        if(d.phone) emp.phone=d.phone;
+      });
+      renderEmployeeCards();
+    }).catch(function(){renderEmployeeCards();});
+  } else {
+    renderEmployeeCards();
+  }
+}
+
+function renderEmployeeCards(){
   var bks=getBookings();
   var now=new Date();
   var thisMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
@@ -944,7 +1034,8 @@ function renderEmployees(){
     var totalBks=myBks.filter(function(b){return b.status!=='cancelada'}).length;
 
     return'<div class="emp-card">'+
-      '<div class="emp-top"><img class="emp-ava" src="'+emp.img+'" alt="'+emp.name+'"><div><div class="emp-nm">'+emp.name+'</div><div class="emp-role">'+emp.role+'</div></div></div>'+
+      '<div class="emp-top"><img class="emp-ava" src="'+emp.img+'" alt="'+emp.name+'"><div style="flex:1"><div class="emp-nm">'+emp.name+'</div><div class="emp-role">'+emp.role+'</div></div>'+
+      '<button class="btn-logout" title="Editar" onclick="openEditEmp(\''+emp.id+'\')" style="color:rgba(255,255,255,.7)"><i class="fas fa-pen"></i></button></div>'+
       '<div class="emp-body">'+
       '<div class="emp-stats">'+
       '<div class="emp-stat"><span class="v">'+monthDone.length+'</span><span class="l">Servicios este mes</span></div>'+
@@ -960,6 +1051,64 @@ function renderEmployees(){
       '<a href="https://wa.me/573126014769" target="_blank" class="btn-outline-g" style="flex:1;justify-content:center;font-size:12px"><i class="fab fa-whatsapp"></i>WhatsApp</a></div>'+
       '</div></div>';
   }).join('');
+}
+
+// ── EDITAR EMPLEADA ──
+var editEmpPhotoFile=null;
+function openEditEmp(id){
+  var emp=EMPLOYEES.find(function(e){return e.id===id});
+  if(!emp) return;
+  editEmpPhotoFile=null;
+  document.getElementById('ee_id').value=emp.id;
+  document.getElementById('ee_preview').src=emp.img;
+  document.getElementById('ee_name').value=emp.name;
+  document.getElementById('ee_phone').value=emp.phone||'';
+  document.getElementById('ee_role').value=emp.role;
+  document.getElementById('ee_experience').value=emp.experience||'';
+  document.getElementById('ee_tags').value=emp.tags||'';
+  document.getElementById('editEmpModal').classList.add('open');
+}
+
+function previewEmpPhoto(e){
+  var file=e.target.files[0];
+  if(!file) return;
+  editEmpPhotoFile=file;
+  document.getElementById('ee_preview').src=URL.createObjectURL(file);
+}
+
+function saveEmpleadaEdit(){
+  if(!window.QuekFB || !window.QuekFB.configured){
+    toast('Firebase todavía no está configurado — pídele a tu desarrollador que active la sincronización.','error');
+    return;
+  }
+  var id=document.getElementById('ee_id').value;
+  var emp=EMPLOYEES.find(function(e){return e.id===id});
+  if(!emp) return;
+
+  var data={
+    fullName:document.getElementById('ee_name').value.trim(),
+    phone:document.getElementById('ee_phone').value.trim(),
+    role:document.getElementById('ee_role').value.trim(),
+    experience:document.getElementById('ee_experience').value.trim(),
+    tags:document.getElementById('ee_tags').value.trim()
+  };
+
+  var savePromise = editEmpPhotoFile
+    ? window.QuekFB.uploadPhoto('empleadas/'+id+'/public.jpg', editEmpPhotoFile).then(function(url){ data.photoPublic=url; })
+    : Promise.resolve();
+
+  savePromise.then(function(){
+    return window.QuekFB.saveEmpleada(id, data);
+  }).then(function(){
+    emp.name=data.fullName; emp.phone=data.phone; emp.role=data.role;
+    emp.experience=data.experience; emp.tags=data.tags;
+    if(data.photoPublic) emp.img=data.photoPublic;
+    renderEmployeeCards();
+    closeModal('editEmpModal');
+    toast('Datos de '+emp.name+' actualizados. Ya se ven en la página web.');
+  }).catch(function(err){
+    toast('No se pudo guardar: '+err.message,'error');
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════
