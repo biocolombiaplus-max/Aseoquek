@@ -124,8 +124,14 @@ section{padding:80px 0}
 .svc-icon i{color:var(--green);font-size:1.3rem}
 .svc-body h3{font-size:1.2rem;font-weight:700;margin-bottom:6px}
 .svc-body p{font-size:.87rem;color:var(--gray);line-height:1.6;margin-bottom:16px}
+.svc-size{display:flex;align-items:flex-start;gap:7px;font-size:.78rem;color:var(--blue);background:#f4f7f6;border-radius:8px;padding:8px 10px;margin:12px 0;line-height:1.5}
+.svc-size i{color:var(--green);margin-top:2px;flex-shrink:0}
 .svc-price{font-size:1.8rem;font-weight:800;color:var(--green)}
 .svc-price span{font-size:.9rem;font-weight:500;color:var(--gray)}
+.svc-policy{margin-top:32px;background:#fff8e1;border:1px solid var(--gold);border-radius:14px;padding:20px 24px;display:flex;gap:14px;align-items:flex-start}
+.svc-policy i{color:#b38600;font-size:1.2rem;margin-top:2px;flex-shrink:0}
+.svc-policy strong{color:#7b5800}
+.svc-policy p{font-size:.86rem;color:#7b5800;line-height:1.7;margin:0}
 .svc-features{list-style:none;margin-top:16px;display:flex;flex-direction:column;gap:8px}
 .svc-features li{display:flex;align-items:center;gap:8px;font-size:.84rem;color:var(--gray)}
 .svc-features li i{color:var(--green);font-size:.8rem}
@@ -490,6 +496,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           <div class="svc-icon"><i class="fas fa-bolt"></i></div>
           <h3>AirBnB Express</h3>
           <p>Perfecto para apartamentos, habitaciones o espacios pequeños que necesitan aseo rápido y eficiente.</p>
+          <div class="svc-size"><i class="fas fa-ruler-combined"></i> Ideal para: <strong>apartaestudios y espacios pequeños</strong> (1 baño)</div>
           <div class="svc-price">$98.000 <span>/ 4 horas</span></div>
           <ul class="svc-features">
             <li><i class="fas fa-check"></i> Cocina y baños</li>
@@ -510,6 +517,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           <div class="svc-icon"><i class="fas fa-home"></i></div>
           <h3>Hogar Completo</h3>
           <p>Limpieza integral de tu hogar. Incluye todas las áreas con atención al detalle en cada rincón.</p>
+          <div class="svc-size"><i class="fas fa-ruler-combined"></i> Ideal para: <strong>casas o apartamentos medianos</strong> (hasta 2 baños)</div>
           <div class="svc-price">$120.000 <span>/ 6 horas</span></div>
           <ul class="svc-features">
             <li><i class="fas fa-check"></i> Toda la vivienda</li>
@@ -529,6 +537,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           <div class="svc-icon"><i class="fas fa-sparkles"></i></div>
           <h3>Limpieza Profunda</h3>
           <p>La limpieza más completa y detallada. Ideal para casas grandes, mudanzas o limpieza de temporada.</p>
+          <div class="svc-size"><i class="fas fa-ruler-combined"></i> Ideal para: <strong>casas grandes</strong> (3+ baños) o aseo general completo</div>
           <div class="svc-price">$149.000 <span>/ 8 horas</span></div>
           <ul class="svc-features">
             <li><i class="fas fa-check"></i> Todo lo del Hogar Completo</li>
@@ -541,6 +550,12 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       </div>
 
     </div>
+
+    <div class="svc-policy">
+      <i class="fas fa-circle-info"></i>
+      <p><strong>Importante:</strong> elige el servicio según el tamaño real de tu vivienda — cada duración está calculada para que tu empleada pueda hacer un trabajo completo y de calidad en ese tiempo. Si al llegar el inmueble es más grande de lo indicado para el servicio contratado, se ajustará el cobro al valor justo según el tamaño real, para poder terminar el aseo completo sin dejar áreas a medias. Así evitamos sorpresas para ti y para tu empleada.</p>
+    </div>
+
   </div>
 </section>
 
@@ -752,6 +767,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
               <div class="svc-opt sel" id="opt-6h" onclick="setService('6h')"><strong>6 horas</strong><span>$120.000</span></div>
               <div class="svc-opt" id="opt-8h" onclick="setService('8h')"><strong>8 horas</strong><span>$149.000</span></div>
             </div>
+            <div class="scarcity-note" style="align-items:flex-start;margin-top:10px"><i class="fas fa-ruler-combined"></i> 4h = apartaestudios · 6h = casas medianas (máx. 2 baños) · 8h = casas grandes (3+ baños). Si el tamaño real no coincide, se ajusta el cobro al valor justo del inmueble.</div>
           </div>
 
           <div class="fstep-label"><span class="fstep-num">2</span>¿Cuándo y a qué hora?</div>
@@ -878,6 +894,10 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">¿El precio incluye todo o hay cobros adicionales? <i class="fas fa-chevron-down"></i></button>
         <div class="faq-a"><p>El precio que ves es el precio final — sin sorpresas. Incluye mano de obra, productos de limpieza y desplazamiento dentro de las zonas de cobertura (Cúcuta, Los Patios y Villa del Rosario). Solo si solicitas productos especializados adicionales (como cera para pisos o productos específicos) se coordina aparte.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">¿Cómo sé qué servicio elegir según el tamaño de mi casa? <i class="fas fa-chevron-down"></i></button>
+        <div class="faq-a"><p>El de <strong>4 horas</strong> está pensado para apartaestudios y espacios pequeños (1 baño); el de <strong>6 horas</strong> para casas o apartamentos medianos (hasta 2 baños); y el de <strong>8 horas</strong> para casas grandes (3 o más baños) o cuando necesitas un aseo general completo. Elige según el tamaño real de tu vivienda: cada duración está calculada para que tu empleada pueda hacer un trabajo completo y de calidad. Si al llegar el inmueble resulta más grande de lo indicado para el servicio contratado, se ajusta el cobro al valor justo según el tamaño real, para poder terminar el aseo completo sin dejar áreas a medias. Ante la duda, escríbenos por WhatsApp antes de agendar y te ayudamos a elegir el correcto.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">¿Puedo cancelar o reagendar? <i class="fas fa-chevron-down"></i></button>
