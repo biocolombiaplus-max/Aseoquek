@@ -233,6 +233,9 @@ section{padding:80px 0}
 .risk-reversal i{font-size:1.1rem;flex-shrink:0}
 .scarcity-note{font-size:.76rem;color:var(--gray);margin-top:8px;display:flex;align-items:center;gap:6px}
 .scarcity-note i{color:var(--orange)}
+.fstep-label{display:flex;align-items:center;gap:10px;font-size:.8rem;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.04em;margin:26px 0 14px}
+.fstep-label:first-of-type{margin-top:2px}
+.fstep-num{width:23px;height:23px;min-width:23px;border-radius:50%;background:var(--green);color:#fff;font-size:.74rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0}
 
 /* ── COMING SOON ── */
 .coming-soon{background:var(--light)}
@@ -715,29 +718,33 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
           <span><i class="fas fa-medal"></i> Garantía total</span>
         </div>
         <form id="bookForm" onsubmit="submitBooking(event)">
+          <div class="fstep-label"><span class="fstep-num">1</span>Elige tu servicio</div>
           <div class="form-group">
-            <label>Servicio</label>
             <div class="svc-selector">
               <div class="svc-opt" id="opt-4h" onclick="setService('4h')"><strong>4 horas</strong><span>$98.000</span></div>
               <div class="svc-opt sel" id="opt-6h" onclick="setService('6h')"><strong>6 horas</strong><span>$120.000</span></div>
               <div class="svc-opt" id="opt-8h" onclick="setService('8h')"><strong>8 horas</strong><span>$149.000</span></div>
             </div>
           </div>
+
+          <div class="fstep-label"><span class="fstep-num">2</span>¿Cuándo y a qué hora?</div>
           <div class="form-row">
             <div class="form-group">
-              <label>Fecha</label>
+              <label>¿Qué día necesitas el servicio?</label>
               <input type="date" id="fDate" required onchange="checkAvail()">
             </div>
             <div class="form-group">
-              <label>Turno</label>
+              <label>¿A qué hora quieres que inicie?</label>
               <div class="turno-sel">
-                <div class="turno-opt sel" id="t-8am" onclick="setTurno('8am')"><strong>8:00 AM</strong><span>Mañana</span></div>
-                <div class="turno-opt" id="t-1pm" onclick="setTurno('1pm')"><strong>1:00 PM</strong><span>Tarde</span></div>
+                <div class="turno-opt sel" id="t-8am" onclick="setTurno('8am')"><strong>8:00 AM</strong><span>Inicia en la mañana</span></div>
+                <div class="turno-opt" id="t-1pm" onclick="setTurno('1pm')"><strong>1:00 PM</strong><span>Inicia en la tarde</span></div>
               </div>
             </div>
           </div>
           <div id="availMsg" class="avail-msg"></div>
           <div class="scarcity-note"><i class="fas fa-circle-exclamation"></i> Solo atendemos 2 servicios por turno para garantizar puntualidad y calidad.</div>
+
+          <div class="fstep-label"><span class="fstep-num">3</span>Tus datos de contacto</div>
           <div class="form-row">
             <div class="form-group">
               <label>Tu nombre</label>
