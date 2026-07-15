@@ -207,7 +207,7 @@ section{padding:80px 0}
 .book-perks{display:flex;flex-direction:column;gap:14px}
 .book-perk{display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.85);font-size:.9rem}
 .book-perk i{color:var(--green);font-size:1rem;width:20px}
-.book-form{background:#fff;border-radius:24px;padding:36px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.book-form{background:#fff;border-radius:24px;padding:36px;box-shadow:0 20px 60px rgba(0,0,0,.25);min-width:0}
 .book-form h3{font-size:1.3rem;font-weight:800;color:var(--blue);margin-bottom:24px;text-align:center}
 .form-group{margin-bottom:18px}
 .form-group label{display:block;font-size:.82rem;font-weight:600;color:var(--blue);margin-bottom:6px}
@@ -220,6 +220,20 @@ section{padding:80px 0}
 .svc-opt.sel{border-color:var(--green);background:#e8faf4}
 .svc-opt strong{display:block;font-size:.9rem;color:var(--blue);font-weight:700}
 .svc-opt span{font-size:.78rem;color:var(--green);font-weight:600}
+.date-help{display:flex;align-items:center;gap:6px;font-size:.76rem;color:var(--green-d);font-weight:600;margin-bottom:10px}
+.date-scroller{display:flex;gap:9px;overflow-x:auto;max-width:100%;min-width:0;padding:2px 2px 8px;margin-bottom:2px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch}
+.date-scroller::-webkit-scrollbar{height:4px}
+.date-scroller::-webkit-scrollbar-thumb{background:#e9ecef;border-radius:4px}
+.date-chip{flex:0 0 auto;min-width:66px;border:2px solid #e9ecef;border-radius:14px;padding:10px 6px 9px;text-align:center;cursor:pointer;transition:.2s;scroll-snap-align:start;background:#fff}
+.date-chip:hover{border-color:var(--green)}
+.date-chip.sel{border-color:var(--green);background:#e8faf4;transform:translateY(-2px)}
+.date-chip .dc-dow{display:block;font-size:.66rem;color:var(--gray);text-transform:uppercase;font-weight:700;margin-bottom:5px;letter-spacing:.02em}
+.date-chip strong{display:block;font-size:1.35rem;font-weight:800;color:var(--blue);line-height:1}
+.date-chip .dc-mon{display:block;font-size:.64rem;color:var(--gray);text-transform:uppercase;margin-top:3px}
+.date-chip.tomorrow{border-color:var(--gold)}
+.date-chip.tomorrow.sel{border-color:var(--green)}
+.date-chip .dc-tag{display:block;font-size:.58rem;font-weight:800;color:#fff;background:var(--gold);border-radius:20px;padding:2px 5px;margin-bottom:5px;letter-spacing:.02em;white-space:nowrap}
+.date-chip .dc-hot{display:block;font-size:.58rem;color:var(--orange);font-weight:700;margin-top:3px;white-space:nowrap}
 .turno-sel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
 .turno-opt{border:2px solid #e9ecef;border-radius:10px;padding:12px;text-align:center;cursor:pointer;transition:.3s}
 .turno-opt:hover{border-color:var(--green)}
@@ -771,11 +785,13 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           </div>
 
           <div class="fstep-label"><span class="fstep-num">2</span>¿Cuándo y a qué hora?</div>
+          <div class="form-group">
+            <label>¿Qué día necesitas el servicio?</label>
+            <p class="date-help"><i class="fas fa-circle-check"></i> Mostramos solo los próximos 8 días para garantizarte cupo real</p>
+            <div class="date-scroller" id="dateScroller"></div>
+            <input type="hidden" id="fDate" required>
+          </div>
           <div class="form-row">
-            <div class="form-group">
-              <label>¿Qué día necesitas el servicio?</label>
-              <input type="date" id="fDate" required onchange="checkAvail()">
-            </div>
             <div class="form-group">
               <label>¿A qué hora quieres que inicie?</label>
               <div class="turno-sel">
@@ -1120,13 +1136,54 @@ window.addEventListener('scroll', function(){
 function openMob(){ document.getElementById('mobMenu').classList.add('open'); document.body.style.overflow='hidden'; }
 function closeMob(){ document.getElementById('mobMenu').classList.remove('open'); document.body.style.overflow=''; }
 
-// ── SET DATE MIN ──
-(function(){
-  var d = new Date();
-  d.setDate(d.getDate()+1);
-  var pad = function(n){ return String(n).padStart(2,'0'); };
-  document.getElementById('fDate').min = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-})();
+// ── SELECTOR DE FECHA (próximos 8 días, hora de Colombia) ──
+var DOW_ES = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+var MON_ES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+
+function bogotaTodayParts(){
+  var s = new Intl.DateTimeFormat('en-CA', {timeZone:'America/Bogota', year:'numeric', month:'2-digit', day:'2-digit'}).format(new Date());
+  var p = s.split('-');
+  return {y:+p[0], m:+p[1], d:+p[2]};
+}
+function addDaysToParts(parts, n){
+  var dt = new Date(Date.UTC(parts.y, parts.m-1, parts.d));
+  dt.setUTCDate(dt.getUTCDate()+n);
+  return {y:dt.getUTCFullYear(), m:dt.getUTCMonth()+1, d:dt.getUTCDate(), weekday:dt.getUTCDay()};
+}
+function partsToStr(p){
+  var pad=function(n){return String(n).padStart(2,'0')};
+  return p.y+'-'+pad(p.m)+'-'+pad(p.d);
+}
+
+function buildDateScroller(){
+  var today = bogotaTodayParts();
+  var html = '';
+  var firstStr = null;
+  for(var i=1; i<=8; i++){
+    var p = addDaysToParts(today, i);
+    var ds = partsToStr(p);
+    if(i===1) firstStr = ds;
+    var isTomorrow = i===1;
+    html += '<div class="date-chip'+(isTomorrow?' tomorrow':'')+'" data-date="'+ds+'" onclick="setDate(\''+ds+'\')">'
+      + (isTomorrow ? '<span class="dc-tag">MAÑANA</span>' : '<span class="dc-dow">'+DOW_ES[p.weekday]+'</span>')
+      + '<strong>'+p.d+'</strong>'
+      + '<span class="dc-mon">'+MON_ES[p.m-1]+'</span>'
+      + (isTomorrow ? '<span class="dc-hot">🔥 Más pedido</span>' : '')
+      + '</div>';
+  }
+  document.getElementById('dateScroller').innerHTML = html;
+  setDate(firstStr);
+}
+
+function setDate(ds){
+  document.getElementById('fDate').value = ds;
+  document.querySelectorAll('.date-chip').forEach(function(el){
+    el.classList.toggle('sel', el.getAttribute('data-date')===ds);
+  });
+  checkAvail();
+}
+
+buildDateScroller();
 
 // ── SERVICE SELECTION ──
 function setService(s){
@@ -1229,6 +1286,7 @@ function submitBooking(e){
   document.getElementById('bookForm').reset();
   setService('6h');
   setTurno('8am');
+  buildDateScroller();
   document.getElementById('availMsg').className='avail-msg';
 }
 
