@@ -271,6 +271,22 @@ section{padding:80px 0}
 .cs-notify button{background:var(--gold);color:#fff;border:none;border-radius:50px;padding:11px 18px;font-weight:700;cursor:pointer;font-size:.82rem;white-space:nowrap;transition:.3s}
 .cs-notify button:hover{background:#e6a300}
 
+/* ── RESUMEN DE SERVICIOS ── */
+.recap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:8px}
+.recap-card{background:#fff;border-radius:16px;padding:22px;box-shadow:var(--shadow);border:2px solid transparent}
+.recap-card.popular{border-color:var(--gold)}
+.recap-head{display:flex;align-items:center;gap:9px;font-size:1.02rem;font-weight:700;color:var(--blue);margin-bottom:10px}
+.recap-head i{color:var(--green);font-size:.95rem}
+.recap-price{font-size:1.4rem;font-weight:800;color:var(--green);margin-bottom:10px}
+.recap-price span{font-size:.78rem;font-weight:500;color:var(--gray)}
+.recap-size{font-size:.78rem;color:var(--blue);background:var(--light);border-radius:8px;padding:8px 10px;margin-bottom:14px;line-height:1.5}
+.recap-card ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.recap-card li{font-size:.82rem;color:var(--gray);display:flex;align-items:center;gap:7px}
+.recap-card li i{color:var(--green);font-size:.72rem}
+.recap-common{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-top:32px;padding-top:28px;border-top:1px solid #e2e6e4}
+.recap-common div{display:flex;align-items:center;gap:7px;font-size:.82rem;font-weight:600;color:var(--blue)}
+.recap-common i{color:var(--green)}
+
 /* ── FAQ ── */
 .faq-list{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
 .faq-item{background:#fff;border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
@@ -363,6 +379,7 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
   .team-grid{grid-template-columns:1fr;max-width:400px;margin:0 auto}
   section{padding:56px 0}
   .services-grid{grid-template-columns:1fr;max-width:420px;margin:0 auto}
+  .recap-grid{grid-template-columns:1fr;max-width:420px;margin:8px auto 0}
   .reviews-grid{grid-template-columns:1fr}
   .section-title{font-size:1.5rem}
   body{padding-bottom:74px}
@@ -835,45 +852,55 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
   </div>
 </section>
 
-<!-- PRÓXIMAMENTE -->
-<section class="coming-soon">
+<!-- RESUMEN DE SERVICIOS (después de agendar, para resolver dudas de último momento) -->
+<section id="resumen" style="background:var(--light)">
   <div class="container">
     <div class="section-head text-center">
-      <span class="section-badge" style="background:#fff8e1;color:#856404">Próximamente</span>
-      <h2 class="section-title">Más servicios para tu hogar</h2>
-      <p class="section-sub">Estamos ampliando nuestro portafolio. ¡Déjanos tu número y te avisamos!</p>
+      <span class="section-badge">Resumen rápido</span>
+      <h2 class="section-title">¿Aún no sabes cuál elegir? Compáralos aquí</h2>
+      <p class="section-sub">Todo lo que necesitas saber de cada servicio, en un solo lugar — precio, duración, para qué tamaño de vivienda es y qué incluye.</p>
     </div>
-    <div class="cs-grid">
-      <div class="cs-card">
-        <div class="cs-icon">🔧</div>
-        <h3>Plomería Express</h3>
-        <p>Reparación de goteras, instalación de llaves, destape de tuberías. Profesionales certificados a domicilio.</p>
-        <div class="cs-notify">
-          <input type="tel" placeholder="Tu WhatsApp" id="cs1">
-          <button onclick="notifyMe('cs1','Plomería')">Avisar</button>
-        </div>
+    <div class="recap-grid">
+      <div class="recap-card">
+        <div class="recap-head"><i class="fas fa-bolt"></i>AirBnB Express</div>
+        <div class="recap-price">$98.000 <span>/ 4 horas</span></div>
+        <div class="recap-size">Apartaestudios y espacios pequeños (1 baño)</div>
+        <ul>
+          <li><i class="fas fa-check"></i> Cocina y baños</li>
+          <li><i class="fas fa-check"></i> Cambio de sábanas</li>
+          <li><i class="fas fa-check"></i> Superficies y pisos</li>
+        </ul>
       </div>
-      <div class="cs-card">
-        <div class="cs-icon">🔨</div>
-        <h3>Mantenimiento del Hogar</h3>
-        <p>Pintura, reparaciones eléctricas menores, instalación de muebles, enchape. Todo en un servicio.</p>
-        <div class="cs-notify">
-          <input type="tel" placeholder="Tu WhatsApp" id="cs2">
-          <button onclick="notifyMe('cs2','Mantenimiento')">Avisar</button>
-        </div>
+      <div class="recap-card popular">
+        <span class="svc-badge" style="position:static;display:inline-block;margin-bottom:10px">⭐ Más elegido</span>
+        <div class="recap-head"><i class="fas fa-home"></i>Hogar Completo</div>
+        <div class="recap-price">$120.000 <span>/ 6 horas</span></div>
+        <div class="recap-size">Casas o apartamentos medianos (hasta 2 baños)</div>
+        <ul>
+          <li><i class="fas fa-check"></i> Toda la vivienda</li>
+          <li><i class="fas fa-check"></i> Electrodomésticos</li>
+          <li><i class="fas fa-check"></i> Cristales y ventanas</li>
+        </ul>
       </div>
-      <div class="cs-card">
-        <div class="cs-icon">🌿</div>
-        <h3>Jardinería & Exteriores</h3>
-        <p>Poda de jardines, limpieza de terrazas, lavado de fachadas y zonas exteriores.</p>
-        <div class="cs-notify">
-          <input type="tel" placeholder="Tu WhatsApp" id="cs3">
-          <button onclick="notifyMe('cs3','Jardinería')">Avisar</button>
-        </div>
+      <div class="recap-card">
+        <div class="recap-head"><i class="fas fa-sparkles"></i>Limpieza Profunda</div>
+        <div class="recap-price">$149.000 <span>/ 8 horas</span></div>
+        <div class="recap-size">Casas grandes (3+ baños) o aseo general completo</div>
+        <ul>
+          <li><i class="fas fa-check"></i> Nevera y horno</li>
+          <li><i class="fas fa-check"></i> Desengrase profundo</li>
+          <li><i class="fas fa-check"></i> Mudanzas y post-obra</li>
+        </ul>
       </div>
+    </div>
+    <div class="recap-common">
+      <div><i class="fas fa-shield-halved"></i> Empleada verificada</div>
+      <div><i class="fas fa-lock"></i> Sin anticipo</div>
+      <div><i class="fas fa-star"></i> Garantía de satisfacción</div>
+      <div><i class="fas fa-spray-can-sparkles"></i> Productos incluidos</div>
     </div>
     <div class="section-cta">
-      <p><i class="fas fa-bolt"></i>Mientras tanto, agenda tu aseo profesional</p>
+      <p><i class="fas fa-bolt"></i>¿Ya sabes cuál necesitas?</p>
       <a href="#reservar" class="btn-cta" onclick="scrollToBook()"><i class="fas fa-calendar-check"></i> Agendar mi aseo ahora</a>
     </div>
   </div>
@@ -1012,6 +1039,50 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           <button type="submit" class="btn-submit" style="background:var(--blue)"><i class="fab fa-whatsapp"></i> Enviar por WhatsApp</button>
         </form>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRÓXIMAMENTE -->
+<section class="coming-soon">
+  <div class="container">
+    <div class="section-head text-center">
+      <span class="section-badge" style="background:#fff8e1;color:#856404">Próximamente</span>
+      <h2 class="section-title">Más servicios para tu hogar</h2>
+      <p class="section-sub">Estamos ampliando nuestro portafolio. ¡Déjanos tu número y te avisamos!</p>
+    </div>
+    <div class="cs-grid">
+      <div class="cs-card">
+        <div class="cs-icon">🔧</div>
+        <h3>Plomería Express</h3>
+        <p>Reparación de goteras, instalación de llaves, destape de tuberías. Profesionales certificados a domicilio.</p>
+        <div class="cs-notify">
+          <input type="tel" placeholder="Tu WhatsApp" id="cs1">
+          <button onclick="notifyMe('cs1','Plomería')">Avisar</button>
+        </div>
+      </div>
+      <div class="cs-card">
+        <div class="cs-icon">🔨</div>
+        <h3>Mantenimiento del Hogar</h3>
+        <p>Pintura, reparaciones eléctricas menores, instalación de muebles, enchape. Todo en un servicio.</p>
+        <div class="cs-notify">
+          <input type="tel" placeholder="Tu WhatsApp" id="cs2">
+          <button onclick="notifyMe('cs2','Mantenimiento')">Avisar</button>
+        </div>
+      </div>
+      <div class="cs-card">
+        <div class="cs-icon">🌿</div>
+        <h3>Jardinería & Exteriores</h3>
+        <p>Poda de jardines, limpieza de terrazas, lavado de fachadas y zonas exteriores.</p>
+        <div class="cs-notify">
+          <input type="tel" placeholder="Tu WhatsApp" id="cs3">
+          <button onclick="notifyMe('cs3','Jardinería')">Avisar</button>
+        </div>
+      </div>
+    </div>
+    <div class="section-cta">
+      <p><i class="fas fa-bolt"></i>Mientras tanto, agenda tu aseo profesional</p>
+      <a href="#reservar" class="btn-cta" onclick="scrollToBook()"><i class="fas fa-calendar-check"></i> Agendar mi aseo ahora</a>
     </div>
   </div>
 </section>
