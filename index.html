@@ -868,6 +868,11 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
             </div>
           </div>
           <div class="form-group">
+            <label>Correo electrónico (opcional)</label>
+            <input type="email" id="fEmail" placeholder="tucorreo@ejemplo.com" autocomplete="email">
+            <span class="field-hint"><i class="fas fa-envelope"></i> Si lo dejas, te enviamos la confirmación de tu reserva por correo.</span>
+          </div>
+          <div class="form-group">
             <label>Dirección exacta</label>
             <input type="text" id="fAddr" placeholder="Calle 5 #12-34, Apto 301" autocomplete="street-address" required>
             <span class="field-hint"><i class="fas fa-lock"></i> Solo la conoce tu empleada asignada. Nunca se comparte ni se hace pública.</span>
@@ -1345,6 +1350,7 @@ function submitBooking(e){
   var date = document.getElementById('fDate').value;
   var name = document.getElementById('fName').value.trim();
   var phone = document.getElementById('fPhone').value.trim();
+  var email = document.getElementById('fEmail').value.trim();
   var addr = document.getElementById('fAddr').value.trim();
   var neigh = document.getElementById('fNeigh').value.trim();
   var notes = document.getElementById('fNotes').value.trim();
@@ -1367,7 +1373,7 @@ function submitBooking(e){
   localStorage.setItem('quek_bookings', JSON.stringify(bks));
 
   metaTrack('Schedule', {content_name: SVC_LABEL[selService], content_category:'Aseo profesional', value: SVC_VALUE[selService], currency:'COP'});
-  logToSheet({tipo:'Reserva', nombre:name, contacto:phone, detalle:SVC_LABEL[selService], fecha:date, turno:selTurno, direccion:addr, barrio:neigh, notas:notes});
+  logToSheet({tipo:'Reserva', nombre:name, contacto:phone, detalle:SVC_LABEL[selService], fecha:date, turno:selTurno, direccion:addr, barrio:neigh, notas:notes, email:email});
 
   var turnoLabel = selTurno==='8am' ? '8:00 AM' : '1:00 PM';
   var dateParts = date.split('-');
