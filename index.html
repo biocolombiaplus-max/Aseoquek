@@ -1373,7 +1373,7 @@ function submitBooking(e){
   localStorage.setItem('quek_bookings', JSON.stringify(bks));
 
   metaTrack('Schedule', {content_name: SVC_LABEL[selService], content_category:'Aseo profesional', value: SVC_VALUE[selService], currency:'COP'});
-  logToSheet({tipo:'Reserva', nombre:name, contacto:phone, detalle:SVC_LABEL[selService], fecha:date, turno:selTurno, direccion:addr, barrio:neigh, notas:notes, email:email});
+  logToSheet({tipo:'Reserva', id:booking.id, nombre:name, contacto:phone, servicio:selService, detalle:SVC_LABEL[selService], fecha:date, turno:selTurno, direccion:addr, barrio:neigh, notas:notes, email:email});
 
   var turnoLabel = selTurno==='8am' ? '8:00 AM' : '1:00 PM';
   var dateParts = date.split('-');

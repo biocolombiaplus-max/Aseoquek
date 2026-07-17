@@ -92,6 +92,10 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--tx);min-h
 .btn-sm{padding:6px 12px;font-size:12px;border-radius:7px;border:none;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:600;transition:all .2s}
 .btn-sm.navy{background:var(--navy);color:#fff}
 .btn-sm.navy:hover{background:#0d2236}
+.btn-sm.g{background:var(--g);color:#fff}
+.btn-sm.g:hover{background:var(--gd)}
+.btn-sm.acc{background:var(--acc);color:#fff}
+.btn-sm.acc:hover{background:#e55a28}
 
 /* TABLE */
 .tbl-wrap{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
@@ -370,15 +374,15 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           </div>
           <div style="padding:16px;border-radius:10px;background:rgba(0,200,150,.06);border:1px solid rgba(0,200,150,.15);text-align:center">
             <div style="font-size:11px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Hogar Completo (6h)</div>
-            <div style="font-size:20px;font-weight:800;color:var(--navy)">$130.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
+            <div style="font-size:20px;font-weight:800;color:var(--navy)">$120.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
             <div style="font-size:13px;color:var(--g);font-weight:600;margin-top:4px">Empleada: $60.000</div>
-            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $70.000</div>
+            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $60.000</div>
           </div>
           <div style="padding:16px;border-radius:10px;background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.15);text-align:center">
             <div style="font-size:11px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Limpieza Profunda (8h) ⭐</div>
-            <div style="font-size:20px;font-weight:800;color:var(--navy)">$165.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
+            <div style="font-size:20px;font-weight:800;color:var(--navy)">$149.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
             <div style="font-size:13px;color:var(--g);font-weight:600;margin-top:4px">Empleada: $80.000</div>
-            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $85.000</div>
+            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $69.000</div>
           </div>
         </div>
       </div>
@@ -433,8 +437,8 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           <thead><tr><th>Servicio</th><th>Duración</th><th>Cobro al cliente</th><th>Pago a empleada</th><th>Ganancia empresa</th><th>% empresa</th></tr></thead>
           <tbody>
             <tr><td><strong>AirBnB Express</strong></td><td>4 horas</td><td style="color:var(--navy);font-weight:700">$98.000</td><td style="color:var(--g);font-weight:700">$40.000</td><td style="color:var(--acc);font-weight:700">$58.000</td><td>59%</td></tr>
-            <tr><td><strong>Hogar Completo</strong></td><td>6 horas</td><td style="color:var(--navy);font-weight:700">$130.000</td><td style="color:var(--g);font-weight:700">$60.000</td><td style="color:var(--acc);font-weight:700">$70.000</td><td>54%</td></tr>
-            <tr><td><strong>Limpieza Profunda ⭐</strong></td><td>8 horas</td><td style="color:var(--navy);font-weight:700">$165.000</td><td style="color:var(--g);font-weight:700">$80.000</td><td style="color:var(--acc);font-weight:700">$85.000</td><td>52%</td></tr>
+            <tr><td><strong>Hogar Completo</strong></td><td>6 horas</td><td style="color:var(--navy);font-weight:700">$120.000</td><td style="color:var(--g);font-weight:700">$60.000</td><td style="color:var(--acc);font-weight:700">$60.000</td><td>50%</td></tr>
+            <tr><td><strong>Limpieza Profunda ⭐</strong></td><td>8 horas</td><td style="color:var(--navy);font-weight:700">$149.000</td><td style="color:var(--g);font-weight:700">$80.000</td><td style="color:var(--acc);font-weight:700">$69.000</td><td>46%</td></tr>
           </tbody>
         </table>
       </div>
@@ -583,8 +587,8 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <div class="fg"><label>Servicio <span style="color:var(--acc)">*</span></label>
       <select id="m_svc" class="inp" onchange="updateModalPay()">
         <option value="4h">AirBnB Express (4h) — $98.000</option>
-        <option value="6h">Hogar Completo (6h) — $130.000</option>
-        <option value="8h" selected>Limpieza Profunda (8h) — $165.000</option>
+        <option value="6h" selected>Hogar Completo (6h) — $120.000</option>
+        <option value="8h">Limpieza Profunda (8h) — $149.000</option>
       </select>
     </div>
     <div class="cfg-row">
@@ -630,8 +634,9 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="fg"><label>Experiencia</label><input type="text" id="ee_experience" class="inp" placeholder="5 años de experiencia"></div>
       <div class="fg"><label>Etiquetas (separadas por coma)</label><input type="text" id="ee_tags" class="inp" placeholder="Hogares, Airbnb, Deep Cleaning"></div>
     </div>
+    <div class="fg"><label>Correo de la empleada</label><input type="email" id="ee_email" class="inp" placeholder="correo@ejemplo.com"></div>
     <div style="background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.15);border-radius:8px;padding:12px;font-size:12px;color:var(--lt);margin-top:4px">
-      <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Esta foto y estos datos se muestran en la página web pública y en el portal de la empleada. Si ella sube su propia foto desde su perfil, esa queda privada solo para ella — esta es la que ven los clientes.
+      <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Esta foto y estos datos se muestran en la página web pública y en el portal de la empleada. Si ella sube su propia foto desde su perfil, esa queda privada solo para ella — esta es la que ven los clientes. El teléfono y correo se usan para notificarle cuando confirmes una reserva a su nombre.
     </div>
     <div class="modal-btns">
       <button class="btn-outline-g" onclick="closeModal('editEmpModal')">Cancelar</button>
@@ -650,6 +655,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
 var ADMIN_USER='admin';
 var ADMIN_PASS='QuekAdmin2024';
 var BK_KEY='quek_bookings';
+var SHEET_WEBHOOK_URL='https://script.google.com/macros/s/AKfycbyyvAs6Mtvseyu3YGiAwAH7iBXXTH9wbjDnhlfCi_GJLBL1WwC65yIXodnhfUku11Netg/exec';
 var EXP_KEY='quek_expenses';
 var CFG_KEY='quek_config';
 
@@ -660,8 +666,8 @@ var SVC_PRICE={'4h':98000,'6h':120000,'8h':149000};
 var SVC_LABEL={'4h':'AirBnB Express (4h)','6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
 
 var EMPLOYEES=[
-  {id:'maria',name:'María Fernanda Suárez',role:'Especialista en Limpieza Profunda',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=faces&q=80',experience:'5 años de experiencia',tags:'Hogares, Airbnb, Deep Cleaning, Post-obra',phone:'312 601 4769'},
-  {id:'luzdary',name:'Luzdary Contreras',role:'Especialista AirBnB & Hogar',img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=faces&q=80',experience:'4 años de experiencia',tags:'Apartamentos, Airbnb, Cocinas, Vidrios',phone:'312 601 4769'}
+  {id:'maria',name:'María Fernanda Suárez',role:'Especialista en Limpieza Profunda',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=faces&q=80',experience:'5 años de experiencia',tags:'Hogares, Airbnb, Deep Cleaning, Post-obra',phone:'312 601 4769',email:''},
+  {id:'luzdary',name:'Luzdary Contreras',role:'Especialista AirBnB & Hogar',img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=faces&q=80',experience:'4 años de experiencia',tags:'Apartamentos, Airbnb, Cocinas, Vidrios',phone:'312 601 4769',email:''}
 ];
 var empleadasLoadedFromFB=false;
 var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -669,6 +675,40 @@ var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','S
 // ── Data helpers ──────────────────────────────────────────────
 function getBookings(){try{return JSON.parse(localStorage.getItem(BK_KEY)||'[]')}catch(e){return[]}}
 function setBookings(a){localStorage.setItem(BK_KEY,JSON.stringify(a))}
+
+// ── Trae las reservas que los clientes hicieron en la página web (llegan al Sheet, no a este navegador) ──
+function syncReservationsFromSheet(){
+  if(!SHEET_WEBHOOK_URL) return;
+  fetch(SHEET_WEBHOOK_URL+'?accion=listarReservas')
+    .then(function(r){return r.json()})
+    .then(function(rows){
+      if(!Array.isArray(rows)) return;
+      var bks=getBookings();
+      var existingIds={};
+      bks.forEach(function(b){existingIds[String(b.id)]=true});
+      var added=0;
+      rows.forEach(function(row){
+        if(!row.id || existingIds[String(row.id)]) return;
+        bks.push({
+          id:row.id, name:row.nombre||'', phone:row.contacto||'',
+          service:row.servicio||'4h', date:row.fecha||'', turno:row.turno||'8am',
+          address:row.direccion||'', neighborhood:row.barrio||'', notas:row.notas||'',
+          notes:row.notas||'', email:row.email||'',
+          status:'pendiente', assignedEmployee:'',
+          createdAt:row.timestamp||new Date().toISOString()
+        });
+        added++;
+      });
+      if(added>0){
+        setBookings(bks);
+        renderBookings();
+        renderDashboard();
+        updatePendBadge();
+        toast(added+(added===1?' reserva nueva llegó':' reservas nuevas llegaron')+' del sitio web.');
+      }
+    })
+    .catch(function(){ /* si falla, el panel sigue funcionando con lo que ya tiene guardado */ });
+}
 function getExpenses(){try{return JSON.parse(localStorage.getItem(EXP_KEY)||'[]')}catch(e){return[]}}
 function setExpenses(a){localStorage.setItem(EXP_KEY,JSON.stringify(a))}
 function getCfg(){try{return JSON.parse(localStorage.getItem(CFG_KEY)||'{}')}catch(e){return{}}}
@@ -760,6 +800,8 @@ document.querySelectorAll('.modal-bg').forEach(function(m){
 
 // ── INIT ──────────────────────────────────────────────────────
 function initApp(){
+  loadEmployeeOverrides();
+  syncReservationsFromSheet();
   var now=new Date();
   document.getElementById('headerDate').textContent=now.toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   // set accounting month/year selectors
@@ -915,7 +957,10 @@ function renderBookings(){
       '<td><select class="inp" style="padding:5px 8px;font-size:12px;width:120px" onchange="changeStatus(\''+b.id+'\',this.value)">'+
         ['pendiente','confirmada','en curso','completada','cancelada'].map(function(s){return'<option value="'+s+'" '+(b.status===s?'selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'}).join('')+
       '</select></td>'+
-      '<td><div style="display:flex;gap:5px"><button class="btn-sm navy" onclick="sendWAConfirm(\''+b.id+'\')" title="Confirmar por WA"><i class="fab fa-whatsapp"></i></button>'+
+      '<td><div style="display:flex;gap:5px;flex-wrap:wrap">'+
+      '<button class="btn-sm g" onclick="confirmarReserva(\''+b.id+'\')" title="Confirmar reserva y avisar a la empleada por correo"><i class="fas fa-check"></i></button>'+
+      '<button class="btn-sm navy" onclick="sendWAConfirm(\''+b.id+'\')" title="Confirmar al cliente por WhatsApp"><i class="fab fa-whatsapp"></i></button>'+
+      '<button class="btn-sm acc" onclick="notifyEmployeeWA(\''+b.id+'\')" title="Enviar los datos a la empleada por WhatsApp"><i class="fas fa-paper-plane"></i></button>'+
       '<button class="btn-red btn-sm" onclick="deleteBk(\''+b.id+'\')" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>'+
       '</tr>';
   }).join('');
@@ -948,6 +993,46 @@ function sendWAConfirm(id){
   if(!b)return;
   var msg=encodeURIComponent('✅ *Confirmación QUE-K*\n\nHola '+b.name+', tu reserva está confirmada:\n🧹 '+SVC_LABEL[b.service]+'\n📅 '+fmtDate(b.date)+'\n⏰ '+turnoLabel(b.turno)+'\n📍 '+b.address+', '+b.neighborhood+'\n\nTu empleada llegará 30 minutos antes. ¡Gracias por confiar en QUE-K! 💚');
   window.open('https://wa.me/57'+b.phone.replace(/\D/g,'').replace(/^0/,'')+'?text='+msg,'_blank');
+}
+
+// ── CONFIRMAR RESERVA (cambia estado + avisa a la empleada por correo si tiene asignada) ──
+function confirmarReserva(id){
+  var bks=getBookings();
+  var b=bks.find(function(x){return String(x.id)===String(id)});
+  if(!b)return;
+  b.status='confirmada';
+  setBookings(bks);
+  renderBookings();
+  updatePendBadge();
+
+  if(!b.assignedEmployee){
+    toast('Reserva confirmada. Asígnale una empleada para poder avisarle.','error');
+    return;
+  }
+  var emp=EMPLOYEES.find(function(x){return x.name===b.assignedEmployee});
+  if(!emp || !emp.email){
+    toast('Reserva confirmada. '+(emp?emp.name:'La empleada')+' no tiene correo registrado — agrégaselo en la pestaña Empleadas.','error');
+    return;
+  }
+  if(!SHEET_WEBHOOK_URL){ toast('Reserva confirmada (sin correo: falta configurar el webhook).'); return; }
+
+  fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({
+    accion:'notificarEmpleada', email:emp.email, empleada:emp.name,
+    nombre:b.name, contacto:b.phone, detalle:SVC_LABEL[b.service],
+    fecha:b.date, turno:turnoLabel(b.turno), direccion:b.address, barrio:b.neighborhood, notas:b.notes||''
+  })}).catch(function(){});
+  toast('Reserva confirmada. Se le avisó por correo a '+emp.name+'.');
+}
+
+// ── NOTIFICAR A LA EMPLEADA POR WHATSAPP ──
+function notifyEmployeeWA(id){
+  var b=getBookings().find(function(x){return String(x.id)===String(id)});
+  if(!b)return;
+  if(!b.assignedEmployee){ toast('Primero asígnale una empleada a esta reserva.','error'); return; }
+  var emp=EMPLOYEES.find(function(x){return x.name===b.assignedEmployee});
+  if(!emp || !emp.phone){ toast('Esa empleada no tiene teléfono registrado.','error'); return; }
+  var msg=encodeURIComponent('🧹 *Nuevo servicio — QUE-K*\n\nHola '+emp.name+', tienes un servicio asignado:\n\n👤 *Cliente:* '+b.name+'\n📱 *Tel. cliente:* '+b.phone+'\n🧽 *Servicio:* '+SVC_LABEL[b.service]+'\n📅 *Fecha:* '+fmtDate(b.date)+'\n⏰ *Turno:* '+turnoLabel(b.turno)+'\n📍 *Dirección:* '+b.address+', '+b.neighborhood+(b.notes?'\n📝 *Notas:* '+b.notes:'')+'\n\nRecuerda llegar 30 minutos antes. ¡Gracias! 💚');
+  window.open('https://wa.me/57'+emp.phone.replace(/\D/g,'').replace(/^0/,'')+'?text='+msg,'_blank');
 }
 function exportCSV(){
   var bks=getBookings();
@@ -1066,6 +1151,7 @@ function openEditEmp(id){
   document.getElementById('ee_role').value=emp.role;
   document.getElementById('ee_experience').value=emp.experience||'';
   document.getElementById('ee_tags').value=emp.tags||'';
+  document.getElementById('ee_email').value=emp.email||'';
   document.getElementById('editEmpModal').classList.add('open');
 }
 
@@ -1076,11 +1162,27 @@ function previewEmpPhoto(e){
   document.getElementById('ee_preview').src=URL.createObjectURL(file);
 }
 
+// ── Guarda datos de empleadas localmente (funciona sin Firebase) y los sincroniza si ya está configurado ──
+var EMP_OVERRIDE_KEY='quek_employee_overrides';
+function loadEmployeeOverrides(){
+  var overrides;
+  try{ overrides=JSON.parse(localStorage.getItem(EMP_OVERRIDE_KEY)||'{}'); }catch(e){ overrides={}; }
+  EMPLOYEES.forEach(function(emp){
+    var o=overrides[emp.id];
+    if(!o) return;
+    ['name','phone','role','experience','tags','email','img'].forEach(function(k){
+      if(o[k]) emp[k]=o[k];
+    });
+  });
+}
+function saveEmployeeOverride(id,data){
+  var overrides;
+  try{ overrides=JSON.parse(localStorage.getItem(EMP_OVERRIDE_KEY)||'{}'); }catch(e){ overrides={}; }
+  overrides[id]=Object.assign(overrides[id]||{}, data);
+  localStorage.setItem(EMP_OVERRIDE_KEY, JSON.stringify(overrides));
+}
+
 function saveEmpleadaEdit(){
-  if(!window.QuekFB || !window.QuekFB.configured){
-    toast('Firebase todavía no está configurado — pídele a tu desarrollador que active la sincronización.','error');
-    return;
-  }
   var id=document.getElementById('ee_id').value;
   var emp=EMPLOYEES.find(function(e){return e.id===id});
   if(!emp) return;
@@ -1090,8 +1192,29 @@ function saveEmpleadaEdit(){
     phone:document.getElementById('ee_phone').value.trim(),
     role:document.getElementById('ee_role').value.trim(),
     experience:document.getElementById('ee_experience').value.trim(),
-    tags:document.getElementById('ee_tags').value.trim()
+    tags:document.getElementById('ee_tags').value.trim(),
+    email:document.getElementById('ee_email').value.trim()
   };
+
+  function applyLocally(photoUrl){
+    emp.name=data.fullName; emp.phone=data.phone; emp.role=data.role;
+    emp.experience=data.experience; emp.tags=data.tags; emp.email=data.email;
+    if(photoUrl) emp.img=photoUrl;
+    saveEmployeeOverride(id, {name:emp.name, phone:emp.phone, role:emp.role, experience:emp.experience, tags:emp.tags, email:emp.email, img:emp.img});
+    renderEmployeeCards();
+    closeModal('editEmpModal');
+  }
+
+  if(editEmpPhotoFile && (!window.QuekFB || !window.QuekFB.configured)){
+    toast('Los datos se guardaron. La foto necesita Firebase configurado — por ahora se queda igual.','error');
+  }
+
+  if(!window.QuekFB || !window.QuekFB.configured){
+    // Sin Firebase: guarda solo localmente (en este navegador), pero ya funciona para el correo/WhatsApp de notificación
+    applyLocally();
+    toast('Datos de '+emp.name+' guardados en este navegador.');
+    return;
+  }
 
   var savePromise = editEmpPhotoFile
     ? window.QuekFB.uploadPhoto('empleadas/'+id+'/public.jpg', editEmpPhotoFile).then(function(url){ data.photoPublic=url; })
@@ -1100,11 +1223,7 @@ function saveEmpleadaEdit(){
   savePromise.then(function(){
     return window.QuekFB.saveEmpleada(id, data);
   }).then(function(){
-    emp.name=data.fullName; emp.phone=data.phone; emp.role=data.role;
-    emp.experience=data.experience; emp.tags=data.tags;
-    if(data.photoPublic) emp.img=data.photoPublic;
-    renderEmployeeCards();
-    closeModal('editEmpModal');
+    applyLocally(data.photoPublic);
     toast('Datos de '+emp.name+' actualizados. Ya se ven en la página web.');
   }).catch(function(err){
     toast('No se pudo guardar: '+err.message,'error');
