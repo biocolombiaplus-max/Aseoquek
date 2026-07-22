@@ -578,6 +578,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="fg"><label>Nombre cliente <span style="color:var(--acc)">*</span></label><input type="text" id="m_name" class="inp" placeholder="Nombre completo"></div>
       <div class="fg"><label>Teléfono <span style="color:var(--acc)">*</span></label><input type="tel" id="m_phone" class="inp" placeholder="313 000 0000"></div>
     </div>
+    <div class="fg"><label>Correo (opcional)</label><input type="email" id="m_email" class="inp" placeholder="cliente@correo.com"><span style="font-size:11px;color:var(--lt)">Si lo dejas, le llega confirmación por correo automáticamente.</span></div>
     <div class="fg"><label>Servicio <span style="color:var(--acc)">*</span></label>
       <select id="m_svc" class="inp" onchange="updateModalPay()">
         <option value="6h" selected>Hogar Completo (6h) — $120.000</option>
@@ -954,7 +955,7 @@ function renderBookings(){
     var pay=empPay(b.service);
     return'<tr>'+
       '<td><strong style="color:var(--lt);font-size:11px">#'+(idx+1)+'</strong></td>'+
-      '<td><strong>'+b.name+'</strong></td>'+
+      '<td><strong>'+b.name+'</strong>'+(b.source==='manual'?' <span style="background:rgba(26,58,92,.08);color:var(--navy);font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap" title="Agregada a mano desde el panel">MANUAL</span>':'')+'</td>'+
       '<td><a href="https://wa.me/57'+b.phone.replace(/\D/g,'').replace(/^0/,'')+'" target="_blank" style="color:var(--g);text-decoration:none"><i class="fab fa-whatsapp"></i> '+b.phone+'</a></td>'+
       '<td><span style="font-size:12px;font-weight:600;color:var(--navy)">'+SVC_LABEL[b.service]+'</span></td>'+
       '<td>'+fmtDate(b.date)+'</td>'+
@@ -1080,6 +1081,7 @@ function updateModalPay(){
 function saveNewBooking(){
   var name=document.getElementById('m_name').value.trim();
   var phone=document.getElementById('m_phone').value.trim();
+  var email=document.getElementById('m_email').value.trim();
   var svc=document.getElementById('m_svc').value;
   var date=document.getElementById('m_date').value;
   var turno=document.getElementById('m_turno').value;
@@ -1088,13 +1090,27 @@ function saveNewBooking(){
   var emp=document.getElementById('m_emp').value;
   var notes=document.getElementById('m_notes').value.trim();
   if(!name||!phone){toast('Nombre y teléfono son obligatorios','error');return}
+  if(!date){toast('Selecciona la fecha del servicio','error');return}
+  var id=Date.now();
   var bks=getBookings();
-  bks.push({id:Date.now(),name:name,phone:phone,service:svc,date:date,turno:turno,address:addr,neighborhood:barrio,assignedEmployee:emp,notes:notes,status:'confirmada',createdAt:new Date().toISOString()});
+  bks.push({id:id,name:name,phone:phone,email:email,service:svc,date:date,turno:turno,address:addr,neighborhood:barrio,notes:notes,assignedEmployee:emp,status:'confirmada',source:'manual',createdAt:new Date().toISOString()});
   setBookings(bks);
   closeModal('addBkModal');
-  renderBookings();updatePendBadge();
-  toast('Reserva creada correctamente');
-  ['m_name','m_phone','m_addr','m_barrio','m_notes'].forEach(function(id){document.getElementById(id).value=''});
+  renderBookings();updatePendBadge();renderDashboard();
+
+  if(SHEET_WEBHOOK_URL){
+    try{
+      fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({
+        tipo:'Reserva', id:id, nombre:name, contacto:phone, email:email,
+        servicio:svc, detalle:SVC_LABEL[svc], fecha:date, turno:turno,
+        direccion:addr, barrio:barrio,
+        notas:(notes?notes+' ':'')+'[Agendada manualmente por el administrador]'
+      })}).catch(function(){});
+    }catch(e){}
+  }
+
+  toast('Reserva creada'+(email?' y correo de confirmación enviado':'')+'.');
+  ['m_name','m_phone','m_email','m_addr','m_barrio','m_notes'].forEach(function(id){document.getElementById(id).value=''});
 }
 
 // ═══════════════════════════════════════════════════════════════
