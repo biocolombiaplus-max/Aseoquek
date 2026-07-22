@@ -242,7 +242,36 @@ tr:hover td{background:rgba(0,200,150,.03)}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 import { getFirestore, doc, getDoc, getDocs, setDoc, collection } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js";
+
+// Comprime la foto en el navegador y la deja como texto (data URL) para guardarla directo en Firestore,
+// sin necesitar Firebase Storage (que exige plan de pago). Reintenta más chico si aún pesa mucho.
+function compressPhotoToDataURL(file, maxDim, quality){
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = function(e){
+      var img = new Image();
+      img.onerror = reject;
+      img.onload = function(){
+        var w = img.width, h = img.height;
+        if (w > h && w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; }
+        else if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function compressPhotoSafe(file){
+  return compressPhotoToDataURL(file, 480, 0.75).then(function(dataUrl){
+    if (dataUrl.length > 450000) return compressPhotoToDataURL(file, 340, 0.55);
+    return dataUrl;
+  });
+}
 
 const firebaseConfig = {
   apiKey: "PEGA_TU_FIREBASE_CONFIG_AQUI",
@@ -256,13 +285,12 @@ const firebaseConfig = {
 if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-  const storage = getStorage(app);
   window.QuekFB = {
     configured: true,
     getEmpleada: (id) => getDoc(doc(db, 'empleadas', id)).then(s => s.exists() ? s.data() : null),
     getAllEmpleadas: () => getDocs(collection(db, 'empleadas')).then(snap => { const out = {}; snap.forEach(d => out[d.id] = d.data()); return out; }),
     saveEmpleada: (id, data) => setDoc(doc(db, 'empleadas', id), data, { merge: true }),
-    uploadPhoto: (path, file) => { const r = ref(storage, path); return uploadBytes(r, file).then(() => getDownloadURL(r)); }
+    uploadPhoto: (path, file) => compressPhotoSafe(file)
   };
 } else {
   window.QuekFB = {
