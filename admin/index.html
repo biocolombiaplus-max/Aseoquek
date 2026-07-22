@@ -805,7 +805,8 @@ function toast(msg,type){
   t.className='toast '+(type||'success');
   document.getElementById('toastMsg').textContent=msg;
   t.classList.add('show');
-  setTimeout(function(){t.classList.remove('show')},3000);
+  clearTimeout(toast._t);
+  toast._t=setTimeout(function(){t.classList.remove('show')},Math.max(3000,msg.length*60));
 }
 
 // ── Modal close on outside click ──────────────────────────────
@@ -1241,14 +1242,15 @@ function saveEmpleadaEdit(){
     closeModal('editEmpModal');
   }
 
-  if(editEmpPhotoFile && (!window.QuekFB || !window.QuekFB.configured)){
-    toast('Los datos se guardaron. La foto necesita Firebase configurado — por ahora se queda igual.','error');
-  }
-
   if(!window.QuekFB || !window.QuekFB.configured){
-    // Sin Firebase: guarda solo localmente (en este navegador), pero ya funciona para el correo/WhatsApp de notificación
+    // Sin Firebase: guarda solo localmente (en este navegador), pero ya funciona para el correo/WhatsApp de notificación.
+    // La foto NO se guarda porque no hay dónde subirla todavía ni forma de mostrarla en la página pública.
     applyLocally();
-    toast('Datos de '+emp.name+' guardados en este navegador.');
+    if(editEmpPhotoFile){
+      toast('Nombre/teléfono/rol guardados en este navegador, pero la FOTO no se aplicó: falta configurar Firebase. Avísame cuando tengas los datos de Firebase y la dejamos funcionando.','error');
+    }else{
+      toast('Datos de '+emp.name+' guardados en este navegador. Nota: estos cambios no se ven en la página pública hasta que se configure Firebase.');
+    }
     return;
   }
 
