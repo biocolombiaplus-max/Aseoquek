@@ -1538,7 +1538,7 @@ function hideSocialProof(){
 document.addEventListener('DOMContentLoaded', function(){
   if (!window.QuekFB || !window.QuekFB.configured) return;
   window.QuekFB.getAllEmpleadas().then(function(data){
-    ['maria','luzdary'].forEach(function(id){
+    ['maria','luzdary','jeknaly'].forEach(function(id){
       var d = data[id];
       if (!d) return;
       if (d.photoPublic) { var img = document.getElementById('teamPhoto-'+id); if (img) img.src = d.photoPublic; }
