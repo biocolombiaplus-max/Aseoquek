@@ -381,8 +381,8 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           <div style="padding:16px;border-radius:10px;background:rgba(255,107,53,.06);border:1px solid rgba(255,107,53,.15);text-align:center">
             <div style="font-size:11px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Limpieza Profunda (8h) ⭐</div>
             <div style="font-size:20px;font-weight:800;color:var(--navy)">$149.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
-            <div style="font-size:13px;color:var(--g);font-weight:600;margin-top:4px">Empleada: $80.000</div>
-            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $69.000</div>
+            <div style="font-size:13px;color:var(--g);font-weight:600;margin-top:4px">Empleada: $70.000</div>
+            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $79.000</div>
           </div>
         </div>
       </div>
@@ -393,6 +393,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="sec-hd">
         <h2>Gestión de Reservas</h2>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline-g" onclick="syncReservationsFromSheet(true)"><i class="fas fa-sync"></i>Actualizar reservas del sitio</button>
           <button class="btn-outline-g" onclick="exportCSV()"><i class="fas fa-download"></i>Exportar CSV</button>
           <button class="btn-g" onclick="openAddBooking()"><i class="fas fa-plus"></i>Nueva reserva</button>
         </div>
@@ -439,7 +440,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           <tbody>
             <tr><td><strong>AirBnB Express</strong></td><td>4 horas</td><td style="color:var(--navy);font-weight:700">$98.000</td><td style="color:var(--g);font-weight:700">$40.000</td><td style="color:var(--acc);font-weight:700">$58.000</td><td>59%</td></tr>
             <tr><td><strong>Hogar Completo</strong></td><td>6 horas</td><td style="color:var(--navy);font-weight:700">$120.000</td><td style="color:var(--g);font-weight:700">$60.000</td><td style="color:var(--acc);font-weight:700">$60.000</td><td>50%</td></tr>
-            <tr><td><strong>Limpieza Profunda ⭐</strong></td><td>8 horas</td><td style="color:var(--navy);font-weight:700">$149.000</td><td style="color:var(--g);font-weight:700">$80.000</td><td style="color:var(--acc);font-weight:700">$69.000</td><td>46%</td></tr>
+            <tr><td><strong>Limpieza Profunda ⭐</strong></td><td>8 horas</td><td style="color:var(--navy);font-weight:700">$149.000</td><td style="color:var(--g);font-weight:700">$70.000</td><td style="color:var(--acc);font-weight:700">$79.000</td><td>53%</td></tr>
           </tbody>
         </table>
       </div>
@@ -549,10 +550,10 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="cfg-card">
         <h3><i class="fas fa-tag"></i>Precios de servicios</h3>
         <div class="price-row"><div><div class="pr-lbl">AirBnB Express (4 horas)</div><div class="pr-sub">Pago empleada: $40.000 fijos</div></div><input type="number" class="pr-inp" id="price4h" value="98000"></div>
-        <div class="price-row"><div><div class="pr-lbl">Hogar Completo (6 horas)</div><div class="pr-sub">Pago empleada: $60.000 fijos</div></div><input type="number" class="pr-inp" id="price6h" value="130000"></div>
-        <div class="price-row"><div><div class="pr-lbl">Limpieza Profunda (8 horas)</div><div class="pr-sub">Pago empleada: $80.000 fijos</div></div><input type="number" class="pr-inp" id="price8h" value="165000"></div>
+        <div class="price-row"><div><div class="pr-lbl">Hogar Completo (6 horas)</div><div class="pr-sub">Pago empleada: $60.000 fijos</div></div><input type="number" class="pr-inp" id="price6h" value="120000"></div>
+        <div class="price-row"><div><div class="pr-lbl">Limpieza Profunda (8 horas)</div><div class="pr-sub">Pago empleada: $70.000 fijos</div></div><input type="number" class="pr-inp" id="price8h" value="149000"></div>
         <div style="margin-top:14px;padding:12px;background:rgba(0,200,150,.07);border-radius:8px;font-size:12px;color:var(--lt)">
-          <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Los pagos fijos a empleadas son: 4h=$40.000 | 6h=$60.000 | 8h=$80.000. Estos no cambian con los precios de venta.
+          <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Los pagos fijos a empleadas son: 4h=$40.000 | 6h=$60.000 | 8h=$70.000. Estos no cambian con los precios de venta.
         </div>
         <div style="margin-top:14px"><button class="btn-g" onclick="savePrices()"><i class="fas fa-save"></i>Guardar precios</button></div>
       </div>
@@ -661,7 +662,7 @@ var EXP_KEY='quek_expenses';
 var CFG_KEY='quek_config';
 
 // Pay rates per service (FIXED)
-var EMP_PAY={'4h':40000,'6h':60000,'8h':80000};
+var EMP_PAY={'4h':40000,'6h':60000,'8h':70000};
 // Default prices to client
 var SVC_PRICE={'4h':98000,'6h':120000,'8h':149000};
 var SVC_LABEL={'4h':'AirBnB Express (4h)','6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
@@ -679,12 +680,19 @@ function getBookings(){try{return JSON.parse(localStorage.getItem(BK_KEY)||'[]')
 function setBookings(a){localStorage.setItem(BK_KEY,JSON.stringify(a))}
 
 // ── Trae las reservas que los clientes hicieron en la página web (llegan al Sheet, no a este navegador) ──
-function syncReservationsFromSheet(){
-  if(!SHEET_WEBHOOK_URL) return;
+function syncReservationsFromSheet(manual){
+  if(!SHEET_WEBHOOK_URL){
+    if(manual) toast('Falta configurar el webhook del Sheet.','error');
+    return;
+  }
+  if(manual) toast('Buscando reservas nuevas...');
   fetch(SHEET_WEBHOOK_URL+'?accion=listarReservas')
-    .then(function(r){return r.json()})
+    .then(function(r){
+      if(!r.ok) throw new Error('El servidor respondió '+r.status);
+      return r.json();
+    })
     .then(function(rows){
-      if(!Array.isArray(rows)) return;
+      if(!Array.isArray(rows)) throw new Error('Respuesta inesperada (revisa que el Apps Script tenga doGet)');
       var bks=getBookings();
       var existingIds={};
       bks.forEach(function(b){existingIds[String(b.id)]=true});
@@ -707,9 +715,13 @@ function syncReservationsFromSheet(){
         renderDashboard();
         updatePendBadge();
         toast(added+(added===1?' reserva nueva llegó':' reservas nuevas llegaron')+' del sitio web.');
+      } else if(manual){
+        toast('No hay reservas nuevas. Ya tienes las '+rows.length+' del Sheet al día.');
       }
     })
-    .catch(function(){ /* si falla, el panel sigue funcionando con lo que ya tiene guardado */ });
+    .catch(function(err){
+      if(manual) toast('No se pudo leer el Sheet: '+err.message+'. Revisa que el Apps Script esté bien implementado (doGet).','error');
+    });
 }
 function getExpenses(){try{return JSON.parse(localStorage.getItem(EXP_KEY)||'[]')}catch(e){return[]}}
 function setExpenses(a){localStorage.setItem(EXP_KEY,JSON.stringify(a))}
@@ -719,6 +731,16 @@ function setCfg(c){localStorage.setItem(CFG_KEY,JSON.stringify(c))}
 function fmt(n){return'$'+Number(n||0).toLocaleString('es-CO')}
 function fmtDate(d){if(!d)return'-';var p=d.split('-');return p[2]+'/'+p[1]+'/'+p[0]}
 function monthKey(d){if(!d)return'';return d.substring(0,7)}
+function weekRangeMonSat(){
+  var now=new Date(),pad=function(n){return String(n).padStart(2,'0')};
+  var todayStr=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate());
+  var addDaysStr=function(s,n){var p=s.split('-'),dt=new Date(+p[0],+p[1]-1,+p[2]);dt.setDate(dt.getDate()+n);return dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate())};
+  var dow=now.getDay(); // 0=Dom..6=Sáb
+  var diffToMonday=dow===0?-6:1-dow;
+  var monday=addDaysStr(todayStr,diffToMonday);
+  var saturday=addDaysStr(monday,5);
+  return {start:monday,end:saturday};
+}
 function empPay(svc){return EMP_PAY[svc]||0}
 function svcPrice(svc){
   var cfg=getCfg();
@@ -1115,10 +1137,14 @@ function renderEmployeeCards(){
   var now=new Date();
   var thisMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
 
+  var week=weekRangeMonSat();
+
   document.getElementById('empGrid').innerHTML=EMPLOYEES.map(function(emp){
     var myBks=bks.filter(function(b){return(b.assignedEmployee||'').toLowerCase()===emp.name.toLowerCase()});
     var monthDone=myBks.filter(function(b){return monthKey(b.date)===thisMonth&&b.status==='completada'});
     var totalEarned=monthDone.reduce(function(s,b){return s+empPay(b.service)},0);
+    var weekDone=myBks.filter(function(b){return b.status==='completada'&&b.date>=week.start&&b.date<=week.end});
+    var weekEarned=weekDone.reduce(function(s,b){return s+empPay(b.service)},0);
     var totalBks=myBks.filter(function(b){return b.status!=='cancelada'}).length;
 
     return'<div class="emp-card">'+
@@ -1130,10 +1156,13 @@ function renderEmployeeCards(){
       '<div class="emp-stat"><span class="v" style="font-size:14px">'+fmt(totalEarned)+'</span><span class="l">Ganado este mes</span></div>'+
       '<div class="emp-stat"><span class="v">'+totalBks+'</span><span class="l">Total histórico</span></div>'+
       '</div>'+
+      '<div class="emp-pay-info" style="margin-bottom:12px;background:rgba(0,200,150,.08);border-color:rgba(0,200,150,.2)"><h4><i class="fas fa-calendar-week" style="color:var(--g);margin-right:6px"></i>Pago de esta semana (Lun-Sáb)</h4>'+
+      '<div class="pay-row"><span class="svc">'+weekDone.length+' servicio'+(weekDone.length===1?'':'s')+' completado'+(weekDone.length===1?'':'s')+'</span><span class="amount">'+fmt(weekEarned)+'</span></div>'+
+      '</div>'+
       '<div class="emp-pay-info"><h4>Tarifas de pago</h4>'+
       '<div class="pay-row"><span class="svc"><i class="fas fa-bed" style="width:14px"></i> AirBnB Express (4h)</span><span class="amount">$40.000</span></div>'+
       '<div class="pay-row"><span class="svc"><i class="fas fa-home" style="width:14px"></i> Hogar Completo (6h)</span><span class="amount">$60.000</span></div>'+
-      '<div class="pay-row"><span class="svc"><i class="fas fa-sparkles" style="width:14px"></i> Limpieza Profunda (8h)</span><span class="amount">$80.000</span></div>'+
+      '<div class="pay-row"><span class="svc"><i class="fas fa-sparkles" style="width:14px"></i> Limpieza Profunda (8h)</span><span class="amount">$70.000</span></div>'+
       '</div>'+
       '<div style="display:flex;gap:8px"><a href="../empleada/index.html" target="_blank" class="btn-g" style="flex:1;justify-content:center;font-size:12px"><i class="fas fa-external-link-alt"></i>Ver portal</a>'+
       '<a href="https://wa.me/573126014769" target="_blank" class="btn-outline-g" style="flex:1;justify-content:center;font-size:12px"><i class="fab fa-whatsapp"></i>WhatsApp</a></div>'+

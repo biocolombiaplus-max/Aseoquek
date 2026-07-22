@@ -106,7 +106,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--blue);ove
 .btn-terminar i{font-size:1.1rem}
 
 /* ── STATS ── */
-.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
 .stat-c{background:#fff;border-radius:10px;padding:14px 8px;text-align:center;box-shadow:var(--shadow)}
 .stat-c .ico{font-size:1.4rem;margin-bottom:5px}
 .stat-c strong{display:block;font-size:1.1rem;font-weight:800;color:var(--blue);line-height:1}
@@ -227,7 +227,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="banner banner-gold"><i class="fas fa-clock"></i><div>Recuerda llegar <strong>30 minutos antes</strong> del horario indicado al cliente para prepararte y comenzar puntual.</div></div>
       <div class="sec-title"><i class="fas fa-calendar-day"></i>Servicios de Hoy</div>
       <div id="todayBks"></div>
-      <div class="sec-title"><i class="fas fa-chart-bar"></i>Mis Estadísticas — Este Mes</div>
+      <div class="sec-title"><i class="fas fa-chart-bar"></i>Mis Estadísticas</div>
       <div class="stats-grid" id="statsGrid"></div>
     </div>
 
@@ -268,7 +268,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
 <script>
 // ── CONSTANTES ──
 var WA_ADMIN = '573126014769';
-var EMP_PAY = {'4h':40000,'6h':60000,'8h':80000};
+var EMP_PAY = {'4h':40000,'6h':60000,'8h':70000};
 var SVC_LBL = {'4h':'AirBnB Express (4h)','6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
 var TURNO_LBL = {'8am':'8:00 AM','1pm':'1:00 PM'};
 
@@ -319,6 +319,16 @@ function fmtDate(s){
   var p=s.split('-'),y=+p[0],m=+p[1],d=+p[2];
   var dt=new Date(y,m-1,d);
   return DAYS[dt.getDay()]+', '+d+' de '+MONTHS[m-1]+' de '+y;
+}
+
+function weekRangeMonSat(){
+  var t=todayStr();
+  var p=t.split('-');
+  var dow=new Date(+p[0],+p[1]-1,+p[2]).getDay(); // 0=Dom..6=Sáb
+  var diffToMonday=dow===0?-6:1-dow;
+  var monday=addDays(t,diffToMonday);
+  var saturday=addDays(monday,5);
+  return {start:monday,end:saturday};
 }
 
 function addDays(s,n){
@@ -483,9 +493,17 @@ function renderStats(){
   var mes=bks.filter(function(b){return(b.date||'').startsWith(mk)});
   var done=mes.filter(function(b){return(b.status||'').toLowerCase().includes('complet')});
   var pago=done.reduce(function(s,b){return s+(EMP_PAY[b.service]||0)},0);
+
+  var week=weekRangeMonSat();
+  var doneSemana=bks.filter(function(b){
+    return (b.status||'').toLowerCase().includes('complet') && b.date>=week.start && b.date<=week.end;
+  });
+  var pagoSemana=doneSemana.reduce(function(s,b){return s+(EMP_PAY[b.service]||0)},0);
+
   document.getElementById('statsGrid').innerHTML=
     '<div class="stat-c"><div class="ico">🧹</div><strong>'+mes.length+'</strong><span>Servicios este mes</span></div>'
    +'<div class="stat-c"><div class="ico">✅</div><strong>'+done.length+'</strong><span>Completados</span></div>'
+   +'<div class="stat-c"><div class="ico">📅</div><strong style="font-size:.85rem">'+(pagoSemana?'$'+pagoSemana.toLocaleString('es-CO'):'—')+'</strong><span>Ganado esta semana (Lun-Sáb)</span></div>'
    +'<div class="stat-c"><div class="ico">💵</div><strong style="font-size:.9rem">'+(pago?'$'+pago.toLocaleString('es-CO'):'—')+'</strong><span>Tu pago del mes</span></div>';
 }
 
