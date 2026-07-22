@@ -412,7 +412,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
             <option value="">Todas las empleadas</option>
             <option value="María Fernanda Suárez">María Fernanda Suárez</option>
             <option value="Luzdary Contreras">Luzdary Contreras</option>
-            <option value="Yetnaly Rey">Yetnaly Rey</option>
+            <option value="Jeknaly Rey">Jeknaly Rey</option>
           </select>
           <input type="date" id="filterDate" onchange="renderBookings()">
           <button class="btn-sm navy" onclick="clearFilters()"><i class="fas fa-times"></i> Limpiar</button>
@@ -602,7 +602,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <div class="cfg-row">
       <div class="fg"><label>Barrio</label><input type="text" id="m_barrio" class="inp" placeholder="Barrio"></div>
       <div class="fg"><label>Empleada asignada</label>
-        <select id="m_emp" class="inp"><option value="">Sin asignar</option><option value="María Fernanda Suárez">María Fernanda Suárez</option><option value="Luzdary Contreras">Luzdary Contreras</option><option value="Yetnaly Rey">Yetnaly Rey</option></select>
+        <select id="m_emp" class="inp"><option value="">Sin asignar</option><option value="María Fernanda Suárez">María Fernanda Suárez</option><option value="Luzdary Contreras">Luzdary Contreras</option><option value="Jeknaly Rey">Jeknaly Rey</option></select>
       </div>
     </div>
     <div id="m_pay_info" style="background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.15);border-radius:8px;padding:12px;font-size:13px;margin-top:4px"></div>
@@ -669,7 +669,7 @@ var SVC_LABEL={'4h':'AirBnB Express (4h)','6h':'Hogar Completo (6h)','8h':'Limpi
 var EMPLOYEES=[
   {id:'maria',name:'María Fernanda Suárez',role:'Especialista en Limpieza Profunda',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=faces&q=80',experience:'5 años de experiencia',tags:'Hogares, Airbnb, Deep Cleaning, Post-obra',phone:'312 601 4769',email:''},
   {id:'luzdary',name:'Luzdary Contreras',role:'Especialista AirBnB & Hogar',img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&h=200&fit=crop&crop=faces&q=80',experience:'4 años de experiencia',tags:'Apartamentos, Airbnb, Cocinas, Vidrios',phone:'312 601 4769',email:''},
-  {id:'yetnaly',name:'Yetnaly Rey',role:'Especialista en Aseo General',img:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMwMEM4OTYiLz4KPHRleHQgeD0iMTAwIiB5PSIxMjIiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9Ijc2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5ZUjwvdGV4dD4KPC9zdmc+Cg==',experience:'Nueva en el equipo QUE-K',tags:'Hogares, Aseo General',phone:'',email:''}
+  {id:'jeknaly',name:'Jeknaly Rey',role:'Especialista en Aseo General',img:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMwMEM4OTYiLz4KPHRleHQgeD0iMTAwIiB5PSIxMjIiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9Ijc2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5KUjwvdGV4dD4KPC9zdmc+Cg==',experience:'Nueva en el equipo QUE-K',tags:'Hogares, Aseo General',phone:'',email:''}
 ];
 var empleadasLoadedFromFB=false;
 var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
@@ -953,7 +953,7 @@ function renderBookings(){
         '<option value="" '+((!b.assignedEmployee)?'selected':'')+'>Sin asignar</option>'+
         '<option value="María Fernanda Suárez" '+((b.assignedEmployee==='María Fernanda Suárez')?'selected':'')+'>María Fernanda Suárez</option>'+
         '<option value="Luzdary Contreras" '+((b.assignedEmployee==='Luzdary Contreras')?'selected':'')+'>Luzdary Contreras</option>'+
-        '<option value="Yetnaly Rey" '+((b.assignedEmployee==='Yetnaly Rey')?'selected':'')+'>Yetnaly Rey</option>'+
+        '<option value="Jeknaly Rey" '+((b.assignedEmployee==='Jeknaly Rey')?'selected':'')+'>Jeknaly Rey</option>'+
       '</select></td>'+
       '<td style="font-weight:700;color:var(--navy)">'+fmt(price)+'</td>'+
       '<td style="font-weight:700;color:var(--g)">'+fmt(pay)+'</td>'+
