@@ -365,13 +365,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <!-- Pay rates info -->
       <div style="background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:20px;margin-bottom:20px">
         <h3 style="font-size:15px;font-weight:700;color:var(--navy);margin-bottom:14px"><i class="fas fa-info-circle" style="color:var(--g);margin-right:8px"></i>Tarifas vigentes</h3>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-          <div style="padding:16px;border-radius:10px;background:rgba(0,200,150,.06);border:1px solid rgba(0,200,150,.15);text-align:center">
-            <div style="font-size:11px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">AirBnB Express (4h)</div>
-            <div style="font-size:20px;font-weight:800;color:var(--navy)">$98.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
-            <div style="font-size:13px;color:var(--g);font-weight:600;margin-top:4px">Empleada: $40.000</div>
-            <div style="font-size:12px;color:var(--lt);margin-top:2px">Ganancia neta: $58.000</div>
-          </div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
           <div style="padding:16px;border-radius:10px;background:rgba(0,200,150,.06);border:1px solid rgba(0,200,150,.15);text-align:center">
             <div style="font-size:11px;color:var(--lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Hogar Completo (6h)</div>
             <div style="font-size:20px;font-weight:800;color:var(--navy)">$120.000 <span style="font-size:12px;font-weight:400;color:var(--lt)">cliente</span></div>
@@ -438,7 +432,6 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
         <table>
           <thead><tr><th>Servicio</th><th>Duración</th><th>Cobro al cliente</th><th>Pago a empleada</th><th>Ganancia empresa</th><th>% empresa</th></tr></thead>
           <tbody>
-            <tr><td><strong>AirBnB Express</strong></td><td>4 horas</td><td style="color:var(--navy);font-weight:700">$98.000</td><td style="color:var(--g);font-weight:700">$40.000</td><td style="color:var(--acc);font-weight:700">$58.000</td><td>59%</td></tr>
             <tr><td><strong>Hogar Completo</strong></td><td>6 horas</td><td style="color:var(--navy);font-weight:700">$120.000</td><td style="color:var(--g);font-weight:700">$60.000</td><td style="color:var(--acc);font-weight:700">$60.000</td><td>50%</td></tr>
             <tr><td><strong>Limpieza Profunda ⭐</strong></td><td>8 horas</td><td style="color:var(--navy);font-weight:700">$149.000</td><td style="color:var(--g);font-weight:700">$70.000</td><td style="color:var(--acc);font-weight:700">$79.000</td><td>53%</td></tr>
           </tbody>
@@ -549,11 +542,10 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="sec-hd"><h2>Configuración</h2></div>
       <div class="cfg-card">
         <h3><i class="fas fa-tag"></i>Precios de servicios</h3>
-        <div class="price-row"><div><div class="pr-lbl">AirBnB Express (4 horas)</div><div class="pr-sub">Pago empleada: $40.000 fijos</div></div><input type="number" class="pr-inp" id="price4h" value="98000"></div>
         <div class="price-row"><div><div class="pr-lbl">Hogar Completo (6 horas)</div><div class="pr-sub">Pago empleada: $60.000 fijos</div></div><input type="number" class="pr-inp" id="price6h" value="120000"></div>
         <div class="price-row"><div><div class="pr-lbl">Limpieza Profunda (8 horas)</div><div class="pr-sub">Pago empleada: $70.000 fijos</div></div><input type="number" class="pr-inp" id="price8h" value="149000"></div>
         <div style="margin-top:14px;padding:12px;background:rgba(0,200,150,.07);border-radius:8px;font-size:12px;color:var(--lt)">
-          <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Los pagos fijos a empleadas son: 4h=$40.000 | 6h=$60.000 | 8h=$70.000. Estos no cambian con los precios de venta.
+          <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Los pagos fijos a empleadas son: 6h=$60.000 | 8h=$70.000. Estos no cambian con los precios de venta.
         </div>
         <div style="margin-top:14px"><button class="btn-g" onclick="savePrices()"><i class="fas fa-save"></i>Guardar precios</button></div>
       </div>
@@ -588,7 +580,6 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     </div>
     <div class="fg"><label>Servicio <span style="color:var(--acc)">*</span></label>
       <select id="m_svc" class="inp" onchange="updateModalPay()">
-        <option value="4h">AirBnB Express (4h) — $98.000</option>
         <option value="6h" selected>Hogar Completo (6h) — $120.000</option>
         <option value="8h">Limpieza Profunda (8h) — $149.000</option>
       </select>
@@ -662,10 +653,10 @@ var EXP_KEY='quek_expenses';
 var CFG_KEY='quek_config';
 
 // Pay rates per service (FIXED)
-var EMP_PAY={'4h':40000,'6h':60000,'8h':70000};
+var EMP_PAY={'6h':60000,'8h':70000};
 // Default prices to client
-var SVC_PRICE={'4h':98000,'6h':120000,'8h':149000};
-var SVC_LABEL={'4h':'AirBnB Express (4h)','6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
+var SVC_PRICE={'6h':120000,'8h':149000};
+var SVC_LABEL={'6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
 
 var EMPLOYEES=[
   {id:'maria',name:'María Fernanda Suárez',role:'Especialista en Limpieza Profunda',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=200&h=200&fit=crop&crop=faces&q=80',experience:'5 años de experiencia',tags:'Hogares, Airbnb, Deep Cleaning, Post-obra',phone:'312 601 4769',email:''},
@@ -701,7 +692,7 @@ function syncReservationsFromSheet(manual){
         if(!row.id || existingIds[String(row.id)]) return;
         bks.push({
           id:row.id, name:row.nombre||'', phone:row.contacto||'',
-          service:row.servicio||'4h', date:row.fecha||'', turno:row.turno||'8am',
+          service:row.servicio||'6h', date:row.fecha||'', turno:row.turno||'8am',
           address:row.direccion||'', neighborhood:row.barrio||'', notas:row.notas||'',
           notes:row.notas||'', email:row.email||'',
           status:'pendiente', assignedEmployee:'',
@@ -744,7 +735,6 @@ function weekRangeMonSat(){
 function empPay(svc){return EMP_PAY[svc]||0}
 function svcPrice(svc){
   var cfg=getCfg();
-  if(svc==='4h')return parseInt(cfg.price4h||SVC_PRICE['4h']);
   if(svc==='6h')return parseInt(cfg.price6h||SVC_PRICE['6h']);
   return parseInt(cfg.price8h||SVC_PRICE['8h']);
 }
@@ -842,7 +832,6 @@ function initApp(){
   updateModalPay();
   // load saved prices
   var cfg=getCfg();
-  if(cfg.price4h)document.getElementById('price4h').value=cfg.price4h;
   if(cfg.price6h)document.getElementById('price6h').value=cfg.price6h;
   if(cfg.price8h)document.getElementById('price8h').value=cfg.price8h;
 }
@@ -1160,7 +1149,6 @@ function renderEmployeeCards(){
       '<div class="pay-row"><span class="svc">'+weekDone.length+' servicio'+(weekDone.length===1?'':'s')+' completado'+(weekDone.length===1?'':'s')+'</span><span class="amount">'+fmt(weekEarned)+'</span></div>'+
       '</div>'+
       '<div class="emp-pay-info"><h4>Tarifas de pago</h4>'+
-      '<div class="pay-row"><span class="svc"><i class="fas fa-bed" style="width:14px"></i> AirBnB Express (4h)</span><span class="amount">$40.000</span></div>'+
       '<div class="pay-row"><span class="svc"><i class="fas fa-home" style="width:14px"></i> Hogar Completo (6h)</span><span class="amount">$60.000</span></div>'+
       '<div class="pay-row"><span class="svc"><i class="fas fa-sparkles" style="width:14px"></i> Limpieza Profunda (8h)</span><span class="amount">$70.000</span></div>'+
       '</div>'+
@@ -1286,7 +1274,7 @@ function renderAccounting(){
     '<div class="kpi gold"><div class="kpi-label">Ganancia neta</div><div class="kpi-val" style="color:'+(netProfitTotal>=0?'var(--g)':'var(--red)')+'">'+fmt(netProfitTotal)+'</div><div class="kpi-sub">'+MONTHS[month]+' '+year+'</div><i class="fas fa-chart-line kpi-icon"></i></div>';
 
   // Income by service
-  var svcGroups={'4h':{count:0,total:0},'6h':{count:0,total:0},'8h':{count:0,total:0}};
+  var svcGroups={'6h':{count:0,total:0},'8h':{count:0,total:0}};
   completedBks.forEach(function(b){if(svcGroups[b.service]){svcGroups[b.service].count++;svcGroups[b.service].total+=svcPrice(b.service)}});
   var incHtml=Object.keys(svcGroups).map(function(k){
     return'<div class="acc-row"><span class="lbl">'+SVC_LABEL[k]+' ('+svcGroups[k].count+' servs.)</span><span class="val green">'+fmt(svcGroups[k].total)+'</span></div>';
@@ -1342,7 +1330,7 @@ function exportAccounting(){
     ['INFORME CONTABLE QUE-K — '+MONTHS[month]+' '+year],[''],
     ['INGRESOS'],['Servicio','Cantidad','Total cobrado','Total emp.','Ganancia']
   ];
-  var grp={'4h':{c:0,inc:0,pay:0},'6h':{c:0,inc:0,pay:0},'8h':{c:0,inc:0,pay:0}};
+  var grp={'6h':{c:0,inc:0,pay:0},'8h':{c:0,inc:0,pay:0}};
   bks.forEach(function(b){if(grp[b.service]){grp[b.service].c++;grp[b.service].inc+=svcPrice(b.service);grp[b.service].pay+=empPay(b.service)}});
   Object.keys(grp).forEach(function(k){rows.push([SVC_LABEL[k],grp[k].c,grp[k].inc,grp[k].pay,grp[k].inc-grp[k].pay])});
   rows.push(['TOTAL','',totalInc,totalPay,totalInc-totalPay],[''],['OTROS GASTOS'],['Fecha','Categoría','Descripción','Valor']);
@@ -1406,7 +1394,6 @@ function deleteExp(id){
 // ═══════════════════════════════════════════════════════════════
 function savePrices(){
   var cfg=getCfg();
-  cfg.price4h=document.getElementById('price4h').value;
   cfg.price6h=document.getElementById('price6h').value;
   cfg.price8h=document.getElementById('price8h').value;
   setCfg(cfg);toast('Precios guardados');
@@ -1429,7 +1416,7 @@ function seedData(){
   if(!confirm('Esto agregará datos de prueba. ¿Continuar?'))return;
   var now=new Date();
   var bks=getBookings();
-  var names=[['Ana García','María Fernanda Suárez','8h','completada'],['Sandra López','Luzdary Contreras','6h','completada'],['Claudia Duarte','María Fernanda Suárez','4h','completada'],['Patricia Mora','Luzdary Contreras','8h','confirmada'],['Diana Cárdenas','María Fernanda Suárez','6h','pendiente']];
+  var names=[['Ana García','María Fernanda Suárez','8h','completada'],['Sandra López','Luzdary Contreras','6h','completada'],['Claudia Duarte','María Fernanda Suárez','6h','completada'],['Patricia Mora','Luzdary Contreras','8h','confirmada'],['Diana Cárdenas','María Fernanda Suárez','6h','pendiente']];
   names.forEach(function(n,i){
     var d=new Date(now);d.setDate(d.getDate()-i*3);
     bks.push({id:Date.now()+i,name:n[0],phone:'313000000'+i,service:n[2],date:d.toISOString().split('T')[0],turno:i%2===0?'8am':'1pm',address:'Calle '+((i+1)*5)+' #'+i+'0-'+i+'5',neighborhood:'Barrio Ejemplo',assignedEmployee:n[1],notes:'',status:n[3],createdAt:d.toISOString()});

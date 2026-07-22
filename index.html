@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>QUE-K Aseo Profesional | Cúcuta · Los Patios · Villa del Rosario</title>
-<meta name="description" content="Servicio profesional de aseo en Cúcuta, Los Patios y Villa del Rosario. Empleadas verificadas, madres cabeza de hogar. AirBnB Express, Hogar Completo, Limpieza Profunda. Agenda en segundos por WhatsApp.">
+<meta name="description" content="Servicio profesional de aseo en Cúcuta, Los Patios y Villa del Rosario. Empleadas verificadas, madres cabeza de hogar. Hogar Completo y Limpieza Profunda. Agenda en segundos por WhatsApp.">
 <meta name="keywords" content="aseo profesional Cúcuta, limpieza hogares Cúcuta, servicio doméstico Los Patios, empleadas verificadas, aseo AirBnB Cúcuta, limpieza Villa del Rosario">
 <meta property="og:title" content="QUE-K Aseo Profesional | Cúcuta">
 <meta property="og:description" content="Empleadas verificadas, madres cabeza de hogar. Agenda tu aseo en segundos.">
@@ -226,7 +226,7 @@ section{padding:80px 0}
 .form-group input,.form-group select,.form-group textarea{width:100%;padding:13px 16px;border:2px solid #e9ecef;border-radius:10px;font-family:'Poppins',sans-serif;font-size:16px;color:var(--blue);transition:.3s;outline:none}
 .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--green);box-shadow:0 0 0 4px rgba(0,200,150,.1)}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.svc-selector{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:6px}
+.svc-selector{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:6px}
 .svc-opt{border:2px solid #e9ecef;border-radius:10px;padding:10px;text-align:center;cursor:pointer;transition:.3s}
 .svc-opt:hover{border-color:var(--green)}
 .svc-opt.sel{border-color:var(--green);background:#e8faf4}
@@ -284,7 +284,7 @@ section{padding:80px 0}
 .cs-notify button:hover{background:#e6a300}
 
 /* ── RESUMEN DE SERVICIOS ── */
-.recap-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:8px}
+.recap-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:8px;max-width:720px;margin-left:auto;margin-right:auto}
 .recap-card{background:#fff;border-radius:16px;padding:22px;box-shadow:var(--shadow);border:2px solid transparent}
 .recap-card.popular{border-color:var(--gold)}
 .recap-head{display:flex;align-items:center;gap:9px;font-size:1.02rem;font-weight:700;color:var(--blue);margin-bottom:10px}
@@ -410,7 +410,7 @@ footer h4{font-size:.95rem;font-weight:700;margin-bottom:16px;color:#fff}
   .trust-in{gap:14px}
   .trust-item span{font-size:.8rem}
   .form-row{grid-template-columns:1fr}
-  .svc-selector{grid-template-columns:1fr 1fr 1fr}
+  .svc-selector{grid-template-columns:1fr 1fr}
   .steps{grid-template-columns:1fr}
   .gallery-grid{grid-template-columns:1fr 1fr}
   .footer-grid{grid-template-columns:1fr}
@@ -529,7 +529,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <div class="section-head">
       <span class="section-badge">Nuestros servicios</span>
       <h2 class="section-title">Elige el servicio ideal para tu espacio</h2>
-      <p class="section-sub">Tres opciones diseñadas para diferentes necesidades. Todas incluyen empleada verificada, productos profesionales y garantía de satisfacción.</p>
+      <p class="section-sub">Dos opciones diseñadas para diferentes necesidades. Todas incluyen empleada verificada, productos profesionales y garantía de satisfacción.</p>
     </div>
 
     <div class="incluye-box">
@@ -554,26 +554,6 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     </div>
 
     <div class="services-grid">
-
-      <div class="svc-card" id="card-4h" onclick="pickService('4h')">
-        <div class="svc-img">
-          <img src="https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=600&q=80" alt="AirBnB Express">
-        </div>
-        <div class="svc-body">
-          <div class="svc-icon"><i class="fas fa-bolt"></i></div>
-          <h3>AirBnB Express</h3>
-          <p>Perfecto para apartamentos, habitaciones o espacios pequeños que necesitan aseo rápido y eficiente.</p>
-          <div class="svc-size"><i class="fas fa-ruler-combined"></i> Ideal para: <strong>apartaestudios y espacios pequeños</strong> (1 baño)</div>
-          <div class="svc-price">$98.000 <span>/ 4 horas</span></div>
-          <ul class="svc-features">
-            <li><i class="fas fa-check"></i> Cocina y baños</li>
-            <li><i class="fas fa-check"></i> Cambio de sábanas</li>
-            <li><i class="fas fa-check"></i> Superficies y pisos</li>
-            <li><i class="fas fa-check"></i> Ideal para Airbnb</li>
-          </ul>
-          <button class="btn-book" onclick="pickService('4h');scrollToBook()"><i class="fas fa-calendar-check"></i> Agendar este servicio</button>
-        </div>
-      </div>
 
       <div class="svc-card popular" id="card-6h" onclick="pickService('6h')">
         <div class="svc-img">
@@ -638,7 +618,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="step">
         <div class="step-num">1</div>
         <h3>Elige tu servicio</h3>
-        <p>Selecciona entre 4h, 6h u 8 horas según el tamaño de tu espacio y necesidades.</p>
+        <p>Selecciona entre 6 u 8 horas según el tamaño de tu espacio y necesidades.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
@@ -788,7 +768,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="gal-item"><img src="https://images.unsplash.com/photo-1556909172-54557c7e4fb7?w=500&q=80" alt="Cocina limpia"><div class="gal-overlay"><span>Cocina — Limpieza profunda</span></div></div>
       <div class="gal-item"><img src="https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=500&q=80" alt="Baño limpio"><div class="gal-overlay"><span>Baño — Desinfección total</span></div></div>
       <div class="gal-item"><img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&q=80" alt="Sala limpia"><div class="gal-overlay"><span>Sala — Hogar Completo</span></div></div>
-      <div class="gal-item"><img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=500&q=80" alt="Habitación limpia"><div class="gal-overlay"><span>Habitación — AirBnB Express</span></div></div>
+      <div class="gal-item"><img src="https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=500&q=80" alt="Habitación limpia"><div class="gal-overlay"><span>Habitación — Hogar Completo</span></div></div>
       <div class="gal-item"><img src="https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=500&q=80" alt="Limpieza profesional"><div class="gal-overlay"><span>Pisos — Brillo total</span></div></div>
       <div class="gal-item"><img src="https://images.unsplash.com/photo-1563453392212-326f5e854473?w=500&q=80" alt="Empleada trabajando"><div class="gal-overlay"><span>Nuestro equipo en acción</span></div></div>
     </div>
@@ -847,11 +827,10 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           <div class="fstep-label"><span class="fstep-num">1</span>Elige tu servicio</div>
           <div class="form-group">
             <div class="svc-selector">
-              <div class="svc-opt" id="opt-4h" onclick="setService('4h')"><strong>4 horas</strong><span>$98.000</span></div>
               <div class="svc-opt sel" id="opt-6h" onclick="setService('6h')"><strong>6 horas</strong><span>$120.000</span></div>
               <div class="svc-opt" id="opt-8h" onclick="setService('8h')"><strong>8 horas</strong><span>$149.000</span></div>
             </div>
-            <div class="scarcity-note" style="align-items:flex-start;margin-top:10px"><i class="fas fa-ruler-combined"></i> 4h = apartaestudios · 6h = casas medianas (máx. 2 baños) · 8h = casas grandes (3+ baños). Si el tamaño real no coincide, se ajusta el cobro al valor justo del inmueble.</div>
+            <div class="scarcity-note" style="align-items:flex-start;margin-top:10px"><i class="fas fa-ruler-combined"></i> 6h = casas medianas (máx. 2 baños) · 8h = casas grandes (3+ baños). Si el tamaño real no coincide, se ajusta el cobro al valor justo del inmueble.</div>
           </div>
 
           <div class="fstep-label"><span class="fstep-num">2</span>¿Cuándo y a qué hora?</div>
@@ -919,16 +898,6 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <p class="section-sub">Todo lo que necesitas saber de cada servicio, en un solo lugar — precio, duración, para qué tamaño de vivienda es y qué incluye.</p>
     </div>
     <div class="recap-grid">
-      <div class="recap-card">
-        <div class="recap-head"><i class="fas fa-bolt"></i>AirBnB Express</div>
-        <div class="recap-price">$98.000 <span>/ 4 horas</span></div>
-        <div class="recap-size">Apartaestudios y espacios pequeños (1 baño)</div>
-        <ul>
-          <li><i class="fas fa-check"></i> Cocina y baños</li>
-          <li><i class="fas fa-check"></i> Cambio de sábanas</li>
-          <li><i class="fas fa-check"></i> Superficies y pisos</li>
-        </ul>
-      </div>
       <div class="recap-card popular">
         <span class="svc-badge" style="position:static;display:inline-block;margin-bottom:10px">⭐ Más elegido</span>
         <div class="recap-head"><i class="fas fa-home"></i>Hogar Completo</div>
@@ -998,7 +967,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">¿Cómo sé qué servicio elegir según el tamaño de mi casa? <i class="fas fa-chevron-down"></i></button>
-        <div class="faq-a"><p>El de <strong>4 horas</strong> está pensado para apartaestudios y espacios pequeños (1 baño); el de <strong>6 horas</strong> para casas o apartamentos medianos (hasta 2 baños); y el de <strong>8 horas</strong> para casas grandes (3 o más baños) o cuando necesitas un aseo general completo. Elige según el tamaño real de tu vivienda: cada duración está calculada para que tu empleada pueda hacer un trabajo completo y de calidad. Si al llegar el inmueble resulta más grande de lo indicado para el servicio contratado, se ajusta el cobro al valor justo según el tamaño real, para poder terminar el aseo completo sin dejar áreas a medias. Ante la duda, escríbenos por WhatsApp antes de agendar y te ayudamos a elegir el correcto.</p></div>
+        <div class="faq-a"><p>El de <strong>6 horas</strong> está pensado para casas o apartamentos medianos (hasta 2 baños); y el de <strong>8 horas</strong> para casas grandes (3 o más baños) o cuando necesitas un aseo general completo. Elige según el tamaño real de tu vivienda: cada duración está calculada para que tu empleada pueda hacer un trabajo completo y de calidad. Si al llegar el inmueble resulta más grande de lo indicado para el servicio contratado, se ajusta el cobro al valor justo según el tamaño real, para poder terminar el aseo completo sin dejar áreas a medias. Ante la duda, escríbenos por WhatsApp antes de agendar y te ayudamos a elegir el correcto.</p></div>
       </div>
       <div class="faq-item">
         <button class="faq-q" onclick="toggleFaq(this)">¿Puedo cancelar o reagendar? <i class="fas fa-chevron-down"></i></button>
@@ -1162,7 +1131,6 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div>
         <h4>Servicios</h4>
         <ul class="footer-links">
-          <li><a href="#reservar">AirBnB Express (4h) — $98.000</a></li>
           <li><a href="#reservar">Hogar Completo (6h) — $120.000</a></li>
           <li><a href="#reservar">Limpieza Profunda (8h) — $149.000</a></li>
           <li><a href="#" style="color:#856404">Plomería (próximamente)</a></li>
@@ -1238,9 +1206,9 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
 var selService = '6h';
 var selTurno = '8am';
 var WA_NUM = '573126014769';
-var SVC_LABEL = {'4h':'AirBnB Express (4h)','6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
-var SVC_PRICE = {'4h':'$98.000','6h':'$120.000','8h':'$149.000'};
-var SVC_VALUE = {'4h':98000,'6h':120000,'8h':149000};
+var SVC_LABEL = {'6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
+var SVC_PRICE = {'6h':'$120.000','8h':'$149.000'};
+var SVC_VALUE = {'6h':120000,'8h':149000};
 
 // ── META PIXEL HELPER ── (no rompe nada si el pixel aún no está configurado)
 function metaTrack(event, params){
@@ -1317,7 +1285,7 @@ buildDateScroller();
 // ── SERVICE SELECTION ──
 function setService(s){
   selService = s;
-  ['4h','6h','8h'].forEach(function(x){
+  ['6h','8h'].forEach(function(x){
     document.getElementById('opt-'+x).classList.toggle('sel', x===s);
   });
   checkAvail();
@@ -1333,7 +1301,7 @@ function setTurno(t){
 // Click service cards on main section
 function pickService(s){
   setService(s);
-  ['4h','6h','8h'].forEach(function(x){
+  ['6h','8h'].forEach(function(x){
     var c = document.getElementById('card-'+x);
     if(c) c.classList.toggle('selected', x===s);
   });
@@ -1470,30 +1438,30 @@ function submitPQRSD(e){
 var reviews = [
   {name:'Alejandra Moreno',loc:'Cúcuta, La Merced',svc:'Hogar Completo',text:'Quedé impresionada con el trabajo de María. Cada rincón de mi casa brilló. Ya agendé para el próximo mes.',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Camila Rueda',loc:'Los Patios',svc:'Limpieza Profunda',text:'La limpieza más profesional que he contratado en Cúcuta. Vale cada peso. Llegaron puntual y trabajaron sin parar.',img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=faces&q=80'},
-  {name:'Valentina Castro',loc:'Villa del Rosario',svc:'AirBnB Express',text:'Perfecta para mis apartamentos de Airbnb. Rápida, eficiente y muy detallista. Mis huéspedes siempre dan 5 estrellas.',img:'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=150&h=150&fit=crop&crop=faces&q=80'},
+  {name:'Valentina Castro',loc:'Villa del Rosario',svc:'Hogar Completo',text:'Perfecta para mis apartamentos de Airbnb. Rápida, eficiente y muy detallista. Mis huéspedes siempre dan 5 estrellas.',img:'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Daniela Pinzón',loc:'Cúcuta, Quinta Orientales',svc:'Hogar Completo',text:'Luzdary es increíble. Organizó todo y dejó un olor delicioso. Mi casa nunca había estado tan limpia.',img:'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Stefany Guerrero',loc:'Cúcuta, San Luis',svc:'Limpieza Profunda',text:'Contraté para mudanza y fue la mejor decisión. En 8 horas el apartamento quedó como nuevo para los nuevos inquilinos.',img:'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Paola Hernández',loc:'Los Patios',svc:'Hogar Completo',text:'Excelente servicio. Las empleadas son muy responsables y confiables. Se nota que son profesionales de verdad.',img:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=faces&q=80'},
-  {name:'María José Díaz',loc:'Cúcuta, Chapinero',svc:'AirBnB Express',text:'Mis clientes de Airbnb siempre preguntan quién hace el aseo. Los recomiendo sin dudar. Son las mejores.',img:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces&q=80'},
+  {name:'María José Díaz',loc:'Cúcuta, Chapinero',svc:'Hogar Completo',text:'Mis clientes de Airbnb siempre preguntan quién hace el aseo. Los recomiendo sin dudar. Son las mejores.',img:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Andrea Suárez',loc:'Villa del Rosario',svc:'Limpieza Profunda',text:'Contraté la limpieza profunda y quedé sin palabras. Lavaron hasta los rodapiés y el interior del horno. ¡Increíble!',img:'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Laura Jiménez',loc:'Cúcuta, El Llano',svc:'Hogar Completo',text:'Súper puntual, muy profesional y dejaron todo perfecto. Ya son mis asesoras de confianza permanentes.',img:'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=faces&q=80'},
-  {name:'Natalia Villamizar',loc:'Los Patios',svc:'AirBnB Express',text:'Rápidas y muy eficientes. En 4 horas mi apartamento quedó listo para recibir huéspedes. 100% recomendadas.',img:'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=faces&q=80'},
+  {name:'Natalia Villamizar',loc:'Los Patios',svc:'Hogar Completo',text:'Rápidas y muy eficientes, mi apartamento quedó listo para recibir huéspedes. 100% recomendadas.',img:'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Isabella Rojas',loc:'Cúcuta, Atalaya',svc:'Hogar Completo',text:'Muy buena atención desde la reserva hasta el servicio. Se nota que son personas honestas y trabajadoras.',img:'https://images.unsplash.com/photo-1554151228-14d9def656e4?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Juliana Prada',loc:'Cúcuta, Centro',svc:'Limpieza Profunda',text:'Post-obra de remodelación. Dejaron el apartamento impoluto. Mucho detalle y muy buena disposición.',img:'https://images.unsplash.com/photo-1590086782957-93c06ef21604?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Margarita Leal',loc:'Villa del Rosario',svc:'Hogar Completo',text:'Por fin encontré servicio de aseo de confianza en Villa del Rosario. Puntuales, amables y muy limpias.',img:'https://images.unsplash.com/photo-1601412436009-d964bd02edbc?w=150&h=150&fit=crop&crop=faces&q=80'},
-  {name:'Yeimy Torres',loc:'Cúcuta, Blanco',svc:'AirBnB Express',text:'Rápidas y detallistas. Mis apartamentos siempre tienen la mejor calificación gracias a QUE-K.',img:'https://images.unsplash.com/photo-1470468969717-61d5d54fd036?w=150&h=150&fit=crop&crop=faces&q=80'},
+  {name:'Yeimy Torres',loc:'Cúcuta, Blanco',svc:'Hogar Completo',text:'Rápidas y detallistas. Mis apartamentos siempre tienen la mejor calificación gracias a QUE-K.',img:'https://images.unsplash.com/photo-1470468969717-61d5d54fd036?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Lorena Quintero',loc:'Los Patios',svc:'Limpieza Profunda',text:'Llegaron con todo y se pusieron a trabajar de una. La cocina quedó impecable, hasta el horno por dentro.',img:'https://images.unsplash.com/photo-1541101767792-f9b2b1c4f127?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Cindy Morales',loc:'Cúcuta, San Eduardo',svc:'Hogar Completo',text:'Las contraté para una reunión familiar urgente. En 6 horas dejaron todo listo. Mis invitados quedaron admirados.',img:'https://images.unsplash.com/photo-1566616213894-2d4e1baee5d8?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Patricia Sandoval',loc:'Cúcuta, Orquídeas',svc:'Limpieza Profunda',text:'Tercera vez que las contrato. Siempre cumplen. María es muy profesional y amable.',img:'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Angélica Méndez',loc:'Villa del Rosario',svc:'Hogar Completo',text:'Excelente relación calidad-precio. Por ese valor el servicio es muy completo. Las volvería a llamar mañana mismo.',img:'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=150&h=150&fit=crop&crop=faces&q=80'},
-  {name:'Ximena Pedraza',loc:'Los Patios',svc:'AirBnB Express',text:'Luzdary es muy ágil y prolija. Mis apartamentos siempre quedan perfectos y mis huéspedes felices.',img:'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150&h=150&fit=crop&crop=faces&q=80'},
+  {name:'Ximena Pedraza',loc:'Los Patios',svc:'Hogar Completo',text:'Luzdary es muy ágil y prolija. Mis apartamentos siempre quedan perfectos y mis huéspedes felices.',img:'https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Sandra Cárdenas',loc:'Cúcuta, La Cabrera',svc:'Hogar Completo',text:'Contraté como regalo para mi mamá. Ella quedó encantada y me dijo que era lo mejor que le habían dado.',img:'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Adriana Flórez',loc:'Cúcuta, Comuneros',svc:'Limpieza Profunda',text:'Impecable trabajo. Organizaron el estudio, limpiaron todas las ventanas y dejaron los baños relucientes.',img:'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Gloria Ramírez',loc:'Los Patios',svc:'Hogar Completo',text:'Son de confianza total. Las dejo solas en casa y todo queda perfecto. Ya son parte de mi rutina mensual.',img:'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=faces&q=80'},
-  {name:'Viviana Osorio',loc:'Villa del Rosario',svc:'AirBnB Express',text:'Rapidísimas y muy detallistas. El check-out de Airbnb nunca fue tan fácil gracias a QUE-K.',img:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces&q=80'},
+  {name:'Viviana Osorio',loc:'Villa del Rosario',svc:'Hogar Completo',text:'Rapidísimas y muy detallistas. El check-out de Airbnb nunca fue tan fácil gracias a QUE-K.',img:'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Carolina Becerra',loc:'Cúcuta, La Victoria',svc:'Limpieza Profunda',text:'Contraté para entregar un arriendo y quedó impecable. El propietario no encontró ninguna observación.',img:'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Diana Espinosa',loc:'Cúcuta, El Progreso',svc:'Hogar Completo',text:'Muy buena atención al cliente. Se nota que les importa dejar todo bien. Las recomiendo con toda confianza.',img:'https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=150&h=150&fit=crop&crop=faces&q=80'},
-  {name:'Fanny Rangel',loc:'Los Patios',svc:'AirBnB Express',text:'Súper recomendadas para Airbnb. Rápidas, eficientes y mis huéspedes siempre comentan lo limpio que está.',img:'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=faces&q=80'},
+  {name:'Fanny Rangel',loc:'Los Patios',svc:'Hogar Completo',text:'Súper recomendadas para Airbnb. Rápidas, eficientes y mis huéspedes siempre comentan lo limpio que está.',img:'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Esperanza Nieto',loc:'Cúcuta, La Merced',svc:'Limpieza Profunda',text:'Profesionales de verdad. Vinieron a hacer la limpieza de temporada y quedé más que satisfecha.',img:'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=150&h=150&fit=crop&crop=faces&q=80'},
   {name:'Rosa Contreras',loc:'Villa del Rosario',svc:'Hogar Completo',text:'Llevo 6 meses contratando cada mes. Nunca han fallado. Puntuales, amables y muy buenas trabajadoras.',img:'https://images.unsplash.com/photo-1532910404247-7ee9488d7292?w=150&h=150&fit=crop&crop=faces&q=80'}
 ];
