@@ -224,14 +224,16 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     configured: true,
     getEmpleada: (id) => getDoc(doc(db, 'empleadas', id)).then(s => s.exists() ? s.data() : null),
     saveEmpleada: (id, data) => setDoc(doc(db, 'empleadas', id), data, { merge: true }),
-    uploadPhoto: (path, file) => compressPhotoSafe(file)
+    uploadPhoto: (path, file) => compressPhotoSafe(file),
+    getHorario: (weekKey) => getDoc(doc(db, 'horarios', weekKey)).then(s => s.exists() ? s.data() : null)
   };
 } else {
   window.QuekFB = {
     configured: false,
     getEmpleada: async () => null,
     saveEmpleada: async () => { throw new Error('Firebase no configurado todavía'); },
-    uploadPhoto: async () => { throw new Error('Firebase no configurado todavía'); }
+    uploadPhoto: async () => { throw new Error('Firebase no configurado todavía'); },
+    getHorario: async () => null
   };
 }
 </script>
@@ -274,6 +276,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <!-- ── INICIO ── -->
     <div class="tab-pane on" id="tab-inicio">
       <div class="banner banner-gold"><i class="fas fa-clock"></i><div>Recuerda llegar <strong>30 minutos antes</strong> del horario indicado al cliente para prepararte y comenzar puntual.</div></div>
+      <div class="banner banner-blue" id="restDayBanner" style="display:none"><i class="fas fa-mug-hot"></i><div>Tu día de descanso esta semana es el <strong id="restDayText">—</strong>.</div></div>
       <div class="sec-title"><i class="fas fa-calendar-day"></i>Servicios de Hoy</div>
       <div id="todayBks"></div>
       <div class="sec-title"><i class="fas fa-chart-bar"></i>Mis Estadísticas</div>
@@ -743,12 +746,24 @@ function showDash(){
   syncEmpleadaFromFB().then(function(){
     document.getElementById('hdrPhoto').src=emp.photo;
     document.getElementById('hdrName').textContent=emp.fullName;
-    renderToday(); renderStats(); renderProfile();
+    renderToday(); renderStats(); renderProfile(); renderRestDay();
     document.getElementById('loginPage').style.display='none';
     var d=document.getElementById('dashPage');
     d.style.display='flex'; d.style.flexDirection='column';
     goTab('inicio');
   });
+}
+
+// ── DÍA DE DESCANSO DE ESTA SEMANA (lo define el administrador) ──
+var DIAS_SEMANA_LBL={lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'};
+function renderRestDay(){
+  if(!window.QuekFB || !window.QuekFB.configured) return;
+  var weekKey=weekRangeMonSat().start;
+  window.QuekFB.getHorario(weekKey).then(function(sched){
+    if(!sched || !sched[empKey]) return;
+    document.getElementById('restDayText').textContent=DIAS_SEMANA_LBL[sched[empKey]]||sched[empKey];
+    document.getElementById('restDayBanner').style.display='flex';
+  }).catch(function(){});
 }
 
 // ── Cerrar modal al tocar fuera ──
