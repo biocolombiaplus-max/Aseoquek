@@ -722,29 +722,44 @@ function syncReservationsFromSheet(manual){
     .then(function(rows){
       if(!Array.isArray(rows)) throw new Error('Respuesta inesperada (revisa que el Apps Script tenga doGet)');
       var bks=getBookings();
-      var existingIds={};
-      bks.forEach(function(b){existingIds[String(b.id)]=true});
-      var added=0;
+      var byId={};
+      bks.forEach(function(b){byId[String(b.id)]=b});
+      var added=0, updated=0;
       rows.forEach(function(row){
-        if(!row.id || existingIds[String(row.id)]) return;
-        bks.push({
-          id:row.id, name:row.nombre||'', phone:row.contacto||'',
-          service:row.servicio||'6h', date:row.fecha||'', turno:row.turno||'8am',
-          address:row.direccion||'', neighborhood:row.barrio||'', notas:row.notas||'',
-          notes:row.notas||'', email:row.email||'',
-          status:'pendiente', assignedEmployee:'',
-          createdAt:row.timestamp||new Date().toISOString()
-        });
-        added++;
+        if(!row.id) return;
+        var existing=byId[String(row.id)];
+        if(!existing){
+          bks.push({
+            id:row.id, name:row.nombre||'', phone:row.contacto||'',
+            service:row.servicio||'6h', date:row.fecha||'', turno:row.turno||'8am',
+            address:row.direccion||'', neighborhood:row.barrio||'', notas:row.notas||'',
+            notes:row.notas||'', email:row.email||'',
+            status:'pendiente', assignedEmployee:'',
+            createdAt:row.timestamp||new Date().toISOString()
+          });
+          added++;
+          return;
+        }
+        // La reserva ya existe localmente: si la empleada reportó el cierre del servicio desde su celular
+        // (método de pago, valor cobrado o novedad) y este navegador aún no lo tiene, se completa aquí.
+        var cambio=false;
+        if(row.metodoPago && !existing.paymentMethod){ existing.paymentMethod=row.metodoPago; cambio=true; }
+        if(row.valorCobrado && existing.amountCollected==null){ existing.amountCollected=Number(row.valorCobrado); cambio=true; }
+        if(row.novedad && !existing.novedad){ existing.novedad=row.novedad; cambio=true; }
+        if(row.estado==='completada' && existing.status!=='completada'){ existing.status='completada'; cambio=true; }
+        if(cambio) updated++;
       });
-      if(added>0){
+      if(added>0||updated>0){
         setBookings(bks);
         renderBookings();
         renderDashboard();
         updatePendBadge();
-        toast(added+(added===1?' reserva nueva llegó':' reservas nuevas llegaron')+' del sitio web.');
+        var partes=[];
+        if(added>0) partes.push(added+(added===1?' reserva nueva':' reservas nuevas'));
+        if(updated>0) partes.push(updated+(updated===1?' servicio finalizado por una empleada':' servicios finalizados por empleadas'));
+        toast(partes.join(' y ')+' — sincronizado del sitio.');
       } else if(manual){
-        toast('No hay reservas nuevas. Ya tienes las '+rows.length+' del Sheet al día.');
+        toast('No hay novedades. Ya tienes las '+rows.length+' del Sheet al día.');
       }
     })
     .catch(function(err){
@@ -776,6 +791,8 @@ function svcPrice(svc){
   return parseInt(cfg.price8h||SVC_PRICE['8h']);
 }
 function netProfit(svc){return svcPrice(svc)-empPay(svc)}
+// Valor real cobrado al cliente (lo que reportó la empleada al terminar). Si aún no se reporta, usa el precio de lista.
+function collected(b){return (b.amountCollected!=null && b.amountCollected!=='') ? Number(b.amountCollected) : svcPrice(b.service)}
 
 // ── Auth ──────────────────────────────────────────────────────
 function doLogin(){
@@ -898,7 +915,7 @@ function renderDashboard(){
     return diff>=-1&&diff<=7;
   });
   var monthBks=bks.filter(function(b){return monthKey(b.date)===thisMonth&&b.status==='completada'});
-  var monthIncome=monthBks.reduce(function(s,b){return s+svcPrice(b.service)},0);
+  var monthIncome=monthBks.reduce(function(s,b){return s+collected(b)},0);
   var monthEmpPay=monthBks.reduce(function(s,b){return s+empPay(b.service)},0);
   var monthExpOther=exps.filter(function(e){return e.date&&e.date.startsWith(thisMonth)}).reduce(function(s,e){return s+Number(e.amount||0)},0);
   var monthNet=monthIncome-monthEmpPay-monthExpOther;
@@ -946,7 +963,7 @@ function renderChart(){
   for(var i=5;i>=0;i--){
     var d=new Date(now.getFullYear(),now.getMonth()-i,1);
     var mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
-    var inc=bks.filter(function(b){return monthKey(b.date)===mk&&b.status==='completada'}).reduce(function(s,b){return s+svcPrice(b.service)},0);
+    var inc=bks.filter(function(b){return monthKey(b.date)===mk&&b.status==='completada'}).reduce(function(s,b){return s+collected(b)},0);
     var pay=bks.filter(function(b){return monthKey(b.date)===mk&&b.status==='completada'}).reduce(function(s,b){return s+empPay(b.service)},0);
     data.push({lbl:MONTHS[d.getMonth()].substr(0,3),inc:inc,pay:pay});
     if(inc>maxVal)maxVal=inc;
@@ -988,11 +1005,15 @@ function renderBookings(){
   if(!filtered.length){tbody.innerHTML='<tr><td colspan="12" class="tbl-empty"><i class="fas fa-inbox" style="font-size:28px;margin-bottom:10px;display:block;opacity:.3"></i>No hay reservas con esos filtros</td></tr>';return}
 
   tbody.innerHTML=filtered.map(function(b,idx){
-    var price=svcPrice(b.service);
+    var price=collected(b);
     var pay=empPay(b.service);
+    var payIcon=b.paymentMethod==='efectivo'
+      ? ' <i class="fas fa-money-bill-wave" style="color:var(--g)" title="Pagado en efectivo"></i>'
+      : (b.paymentMethod==='transferencia' ? ' <i class="fas fa-mobile-screen-button" style="color:var(--navy)" title="Pagado por transferencia"></i>' : '');
+    var novedadBadge=b.novedad ? ' <span style="background:#FFF3CD;color:#7B5800;font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap;cursor:help" title="'+b.novedad.replace(/"/g,'&quot;')+'"><i class="fas fa-triangle-exclamation"></i> NOVEDAD</span>' : '';
     return'<tr>'+
       '<td><strong style="color:var(--lt);font-size:11px">#'+(idx+1)+'</strong></td>'+
-      '<td><strong>'+b.name+'</strong>'+(b.source==='manual'?' <span style="background:rgba(26,58,92,.08);color:var(--navy);font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap" title="Agregada a mano desde el panel">MANUAL</span>':'')+'</td>'+
+      '<td><strong>'+b.name+'</strong>'+(b.source==='manual'?' <span style="background:rgba(26,58,92,.08);color:var(--navy);font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap" title="Agregada a mano desde el panel">MANUAL</span>':'')+novedadBadge+'</td>'+
       '<td><a href="https://wa.me/57'+b.phone.replace(/\D/g,'').replace(/^0/,'')+'" target="_blank" style="color:var(--g);text-decoration:none"><i class="fab fa-whatsapp"></i> '+b.phone+'</a></td>'+
       '<td><span style="font-size:12px;font-weight:600;color:var(--navy)">'+SVC_LABEL[b.service]+'</span></td>'+
       '<td>'+fmtDate(b.date)+'</td>'+
@@ -1004,7 +1025,7 @@ function renderBookings(){
         '<option value="Luzdary Contreras" '+((b.assignedEmployee==='Luzdary Contreras')?'selected':'')+'>Luzdary Contreras</option>'+
         '<option value="Jeknaly Rey" '+((b.assignedEmployee==='Jeknaly Rey')?'selected':'')+'>Jeknaly Rey</option>'+
       '</select></td>'+
-      '<td style="font-weight:700;color:var(--navy)">'+fmt(price)+'</td>'+
+      '<td style="font-weight:700;color:var(--navy)">'+fmt(price)+payIcon+'</td>'+
       '<td style="font-weight:700;color:var(--g)">'+fmt(pay)+'</td>'+
       '<td><select class="inp" style="padding:5px 8px;font-size:12px;width:120px" onchange="changeStatus(\''+b.id+'\',this.value)">'+
         ['pendiente','confirmada','en curso','completada','cancelada'].map(function(s){return'<option value="'+s+'" '+(b.status===s?'selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'}).join('')+
@@ -1088,9 +1109,10 @@ function notifyEmployeeWA(id){
 }
 function exportCSV(){
   var bks=getBookings();
-  var rows=[['#','Cliente','Teléfono','Servicio','Fecha','Turno','Dirección','Barrio','Empleada','Cobro','Pago emp','Ganancia','Estado']];
+  var rows=[['#','Cliente','Teléfono','Servicio','Fecha','Turno','Dirección','Barrio','Empleada','Cobro','Pago emp','Ganancia','Estado','Método de pago','Novedad']];
   bks.forEach(function(b,i){
-    rows.push([i+1,b.name,b.phone,SVC_LABEL[b.service],b.date,turnoLabel(b.turno),b.address,b.neighborhood,b.assignedEmployee||'',svcPrice(b.service),empPay(b.service),netProfit(b.service),b.status]);
+    var coll=collected(b);
+    rows.push([i+1,b.name,b.phone,SVC_LABEL[b.service],b.date,turnoLabel(b.turno),b.address,b.neighborhood,b.assignedEmployee||'',coll,empPay(b.service),coll-empPay(b.service),b.status,b.paymentMethod||'',b.novedad||'']);
   });
   var csv=rows.map(function(r){return r.join(',')}).join('\n');
   var a=document.createElement('a');
@@ -1315,7 +1337,7 @@ function renderAccounting(){
   var exps=getExpenses().filter(function(e){return e.date&&e.date.startsWith(mk)});
 
   var completedBks=bks.filter(function(b){return b.status==='completada'});
-  var totalIncome=completedBks.reduce(function(s,b){return s+svcPrice(b.service)},0);
+  var totalIncome=completedBks.reduce(function(s,b){return s+collected(b)},0);
   var totalEmpPay=completedBks.reduce(function(s,b){return s+empPay(b.service)},0);
   var totalOtherExp=exps.reduce(function(s,e){return s+Number(e.amount||0)},0);
   var netProfitTotal=totalIncome-totalEmpPay-totalOtherExp;
@@ -1329,7 +1351,7 @@ function renderAccounting(){
 
   // Income by service
   var svcGroups={'6h':{count:0,total:0},'8h':{count:0,total:0}};
-  completedBks.forEach(function(b){if(svcGroups[b.service]){svcGroups[b.service].count++;svcGroups[b.service].total+=svcPrice(b.service)}});
+  completedBks.forEach(function(b){if(svcGroups[b.service]){svcGroups[b.service].count++;svcGroups[b.service].total+=collected(b)}});
   var incHtml=Object.keys(svcGroups).map(function(k){
     return'<div class="acc-row"><span class="lbl">'+SVC_LABEL[k]+' ('+svcGroups[k].count+' servs.)</span><span class="val green">'+fmt(svcGroups[k].total)+'</span></div>';
   }).join('');
@@ -1356,7 +1378,7 @@ function renderAccounting(){
   // By employee summary
   var byEmpHtml=EMPLOYEES.map(function(emp){
     var myDone=completedBks.filter(function(b){return(b.assignedEmployee||'').toLowerCase()===emp.name.toLowerCase()});
-    var myInc=myDone.reduce(function(s,b){return s+svcPrice(b.service)},0);
+    var myInc=myDone.reduce(function(s,b){return s+collected(b)},0);
     var myPay=myDone.reduce(function(s,b){return s+empPay(b.service)},0);
     var myNet=myInc-myPay;
     return'<div style="background:var(--bg);border-radius:10px;padding:16px;display:flex;align-items:center;gap:14px;margin-bottom:10px">'+
@@ -1377,7 +1399,7 @@ function exportAccounting(){
   var mk=year+'-'+String(month+1).padStart(2,'0');
   var bks=getBookings().filter(function(b){return monthKey(b.date)===mk&&b.status==='completada'});
   var exps=getExpenses().filter(function(e){return e.date&&e.date.startsWith(mk)});
-  var totalInc=bks.reduce(function(s,b){return s+svcPrice(b.service)},0);
+  var totalInc=bks.reduce(function(s,b){return s+collected(b)},0);
   var totalPay=bks.reduce(function(s,b){return s+empPay(b.service)},0);
   var totalExp=exps.reduce(function(s,e){return s+Number(e.amount||0)},0);
   var rows=[
@@ -1385,7 +1407,7 @@ function exportAccounting(){
     ['INGRESOS'],['Servicio','Cantidad','Total cobrado','Total emp.','Ganancia']
   ];
   var grp={'6h':{c:0,inc:0,pay:0},'8h':{c:0,inc:0,pay:0}};
-  bks.forEach(function(b){if(grp[b.service]){grp[b.service].c++;grp[b.service].inc+=svcPrice(b.service);grp[b.service].pay+=empPay(b.service)}});
+  bks.forEach(function(b){if(grp[b.service]){grp[b.service].c++;grp[b.service].inc+=collected(b);grp[b.service].pay+=empPay(b.service)}});
   Object.keys(grp).forEach(function(k){rows.push([SVC_LABEL[k],grp[k].c,grp[k].inc,grp[k].pay,grp[k].inc-grp[k].pay])});
   rows.push(['TOTAL','',totalInc,totalPay,totalInc-totalPay],[''],['OTROS GASTOS'],['Fecha','Categoría','Descripción','Valor']);
   exps.forEach(function(e){rows.push([e.date,e.category,e.description,e.amount])});

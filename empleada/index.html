@@ -106,6 +106,26 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--blue);ove
 .btn-terminar:active{transform:scale(.97)}
 .btn-terminar i{font-size:1.1rem}
 
+/* ── MODAL FINALIZAR SERVICIO ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(13,33,55,.6);z-index:999;align-items:flex-end;justify-content:center;padding:0}
+.modal-bg.open{display:flex}
+.modal-box{background:#fff;border-radius:20px 20px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:88vh;overflow-y:auto;box-shadow:0 -8px 40px rgba(0,0,0,.3)}
+.modal-box h3{font-size:1.05rem;font-weight:700;color:var(--blue);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.pay-opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pay-opt{border:2px solid var(--gray-2);border-radius:10px;padding:14px 8px;text-align:center;cursor:pointer;font-size:.82rem;font-weight:600;color:var(--gray);transition:.15s}
+.pay-opt.sel{border-color:var(--green);background:#f0fdf9;color:var(--green-d)}
+.pay-opt i{display:block;font-size:1.3rem;margin-bottom:6px}
+.field textarea{width:100%;border:2px solid var(--gray-2);border-radius:9px;padding:12px 14px;font-family:'Poppins',sans-serif;font-size:.86rem;color:var(--blue);outline:none;resize:vertical;min-height:64px}
+.field textarea:focus{border-color:var(--green)}
+.modal-actions{display:flex;gap:10px;margin-top:6px}
+.btn-cancel-modal{flex:1;background:var(--gray-2);color:var(--gray);border:none;border-radius:9px;padding:13px;font-family:'Poppins',sans-serif;font-weight:600;font-size:.85rem;cursor:pointer}
+.modal-actions .btn-terminar{flex:1;margin-top:0;width:auto}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--blue-d);color:#fff;padding:12px 20px;border-radius:50px;font-size:.82rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:1100;opacity:0;pointer-events:none;transition:.25s;max-width:90%;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.error{background:var(--red)}
+
 /* ── STATS ── */
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
 .stat-c{background:#fff;border-radius:10px;padding:14px 8px;text-align:center;box-shadow:var(--shadow)}
@@ -293,12 +313,42 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
   </nav>
 </div>
 
+<!-- ═══ FINALIZAR SERVICIO ═══ -->
+<div class="modal-bg" id="finModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-circle-check" style="color:var(--green)"></i>Finalizar servicio</h3>
+    <div class="field">
+      <label>¿Cómo pagó el cliente? <span style="color:var(--red)">*</span></label>
+      <div class="pay-opts">
+        <div class="pay-opt" id="payOpt-efectivo" onclick="pickPayMethod('efectivo')"><i class="fas fa-money-bill-wave"></i>Efectivo</div>
+        <div class="pay-opt" id="payOpt-transferencia" onclick="pickPayMethod('transferencia')"><i class="fas fa-mobile-screen-button"></i>Transferencia</div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Valor cobrado <span style="color:var(--red)">*</span></label>
+      <div class="field-wrap"><i class="fas fa-dollar-sign"></i><input type="number" id="finValor" placeholder="120000"></div>
+    </div>
+    <div class="field" style="margin-bottom:6px">
+      <label>¿Hubo alguna novedad? (opcional)</label>
+      <textarea id="finNovedad" placeholder="Ej: no había agua, cliente llegó tarde, faltó tiempo, cambio de dirección..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeFinModal()">Cancelar</button>
+      <button class="btn-terminar" onclick="confirmarFinServicio()"><i class="fab fa-whatsapp"></i> Confirmar y avisar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"><span id="toastMsg"></span></div>
+
 </div>
 <script>
 // ── CONSTANTES ──
 var WA_ADMIN = '573126014769';
 var EMP_PAY = {'6h':60000,'8h':70000};
 var SVC_LBL = {'6h':'Hogar Completo (6h)','8h':'Limpieza Profunda (8h)'};
+var SVC_PRICE = {'6h':120000,'8h':149000};
+var SHEET_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbyyvAs6Mtvseyu3YGiAwAH7iBXXTH9wbjDnhlfCi_GJLBL1WwC65yIXodnhfUku11Netg/exec';
 var TURNO_LBL = {'8am':'8:00 AM','1pm':'1:00 PM'};
 
 // ── EMPLEADAS ──
@@ -396,21 +446,64 @@ function mapsUrl(b){
   return 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent((b.address||'')+' '+(b.neighborhood||'')+' Cúcuta Colombia');
 }
 
-// ── TERMINAR SERVICIO ──
+// ── TOAST ──
+function toast(msg,type){
+  var t=document.getElementById('toast');
+  t.className=type||'';
+  document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(function(){t.classList.remove('show')},Math.max(3000,msg.length*60));
+}
+
+// ── FINALIZAR SERVICIO (con pago y novedades) ──
+var pendingFinId=null;
+var selectedPayMethod=null;
 function terminarServicio(id){
   var bks=getBookings();
-  var idx=bks.findIndex(function(b){return b.id==id});
-  if(idx<0){alert('Reserva no encontrada.');return;}
+  var b=bks.find(function(x){return x.id==id});
+  if(!b){alert('Reserva no encontrada.');return;}
+  pendingFinId=id;
+  selectedPayMethod=null;
+  document.getElementById('payOpt-efectivo').classList.remove('sel');
+  document.getElementById('payOpt-transferencia').classList.remove('sel');
+  document.getElementById('finValor').value=SVC_PRICE[b.service]||'';
+  document.getElementById('finNovedad').value='';
+  document.getElementById('finModal').classList.add('open');
+}
+function closeFinModal(){
+  document.getElementById('finModal').classList.remove('open');
+  pendingFinId=null;
+}
+function pickPayMethod(m){
+  selectedPayMethod=m;
+  document.getElementById('payOpt-efectivo').classList.toggle('sel',m==='efectivo');
+  document.getElementById('payOpt-transferencia').classList.toggle('sel',m==='transferencia');
+}
+function confirmarFinServicio(){
+  if(!pendingFinId)return;
+  if(!selectedPayMethod){toast('Selecciona cómo pagó el cliente.','error');return;}
+  var valor=Number(document.getElementById('finValor').value);
+  if(!valor||valor<=0){toast('Escribe el valor cobrado.','error');return;}
+  var novedad=document.getElementById('finNovedad').value.trim();
+
+  var bks=getBookings();
+  var idx=bks.findIndex(function(b){return b.id==pendingFinId});
+  if(idx<0){toast('Reserva no encontrada.','error');return;}
   var b=bks[idx];
 
-  // Marcar completada
-  bks[idx].status='completada';
+  b.status='completada';
+  b.paymentMethod=selectedPayMethod;
+  b.amountCollected=valor;
+  b.novedad=novedad;
+  b.completedAt=new Date().toISOString();
   saveBookings(bks);
 
   var dateLabel=fmtDate(b.date);
   var turnoLabel=TURNO_LBL[b.turno]||b.turno;
   var svcLabel=SVC_LBL[b.service]||b.service;
   var pago=EMP_PAY[b.service]?'$'+EMP_PAY[b.service].toLocaleString('es-CO'):'—';
+  var metodoLabel=selectedPayMethod==='efectivo'?'Efectivo':'Transferencia';
 
   var msg='✅ *SERVICIO TERMINADO — QUE-K Aseo*\n\n'
     +'👷 *Empleada:* '+emp.fullName+'\n'
@@ -419,10 +512,26 @@ function terminarServicio(id){
     +'🕐 *Turno:* '+turnoLabel+'\n'
     +'👤 *Cliente:* '+(b.name||'Sin nombre')+'\n'
     +'📍 *Dirección:* '+(b.address||'')+', '+(b.neighborhood||'')+'\n'
-    +'💵 *Pago empleada:* '+pago+'\n\n'
-    +'_Por favor coordinar el transporte de recogida._ 🚗';
+    +'💰 *Método de pago:* '+metodoLabel+'\n'
+    +'💵 *Valor cobrado:* $'+valor.toLocaleString('es-CO')+'\n'
+    +'💵 *Pago empleada:* '+pago+'\n'
+    +(novedad?'⚠️ *Novedad:* '+novedad+'\n':'')
+    +'\n_Por favor coordinar el transporte de recogida._ 🚗';
 
   window.open('https://wa.me/'+WA_ADMIN+'?text='+encodeURIComponent(msg),'_blank');
+
+  // Avisa al panel del administrador aunque esté en otro celular (vía el mismo Sheet de las reservas)
+  if(SHEET_WEBHOOK_URL){
+    try{
+      fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({
+        accion:'finalizarServicio', id:b.id, empleada:emp.fullName,
+        metodoPago:selectedPayMethod, valorCobrado:valor, novedad:novedad, estado:'completada'
+      })}).catch(function(){});
+    }catch(e){}
+  }
+
+  closeFinModal();
+  toast('¡Servicio finalizado! Ya quedó en tu estadística.');
 
   // Refrescar vistas
   renderToday();
@@ -457,6 +566,8 @@ function cardHTML(b, showTerminar){
     +'<div class="bk-svc"><i class="fas fa-broom"></i>'+svcLbl+(pago?' · <strong style="color:var(--green)">'+pago+'</strong> tu pago':'')+'</div>'
     +(addr?'<div class="bk-addr"><i class="fas fa-location-dot"></i><span>'+addr+'</span></div>':'')
     +(b.notes?'<div class="bk-notes"><i class="fas fa-note-sticky"></i><span>'+b.notes+'</span></div>':'')
+    +(isComp&&b.amountCollected?'<div class="bk-notes" style="background:#f0fdf9;color:var(--green-d)"><i class="fas '+(b.paymentMethod==='efectivo'?'fa-money-bill-wave':'fa-mobile-screen-button')+'"></i><span>Cobrado: $'+Number(b.amountCollected).toLocaleString('es-CO')+' ('+(b.paymentMethod==='efectivo'?'Efectivo':'Transferencia')+')</span></div>':'')
+    +(isComp&&b.novedad?'<div class="bk-notes" style="background:#fff8e1;color:#7B5800"><i class="fas fa-triangle-exclamation"></i><span>Novedad: '+b.novedad+'</span></div>':'')
     +'<div class="bk-foot">'
       +'<span class="st '+statusClass(b.status)+'">'+(b.status||'pendiente')+'</span>'
       +(addr?'<a class="btn-maps" href="'+mapsUrl(b)+'" target="_blank"><i class="fas fa-map-location-dot"></i>Maps</a>':'')
@@ -639,6 +750,9 @@ function showDash(){
     goTab('inicio');
   });
 }
+
+// ── Cerrar modal al tocar fuera ──
+document.getElementById('finModal').addEventListener('click',function(e){if(e.target===this)closeFinModal()});
 
 // ── INIT ──
 (function(){
