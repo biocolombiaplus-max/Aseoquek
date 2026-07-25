@@ -755,6 +755,13 @@ function getBookings(){try{return JSON.parse(localStorage.getItem(BK_KEY)||'[]')
 function setBookings(a){localStorage.setItem(BK_KEY,JSON.stringify(a))}
 
 // ── Trae las reservas que los clientes hicieron en la página web (llegan al Sheet, no a este navegador) ──
+// Google Sheets a veces guarda columnas numéricas (teléfono) o de fecha como número/Date en vez de texto plano,
+// aunque se hayan escrito como texto. Estas funciones normalizan lo que venga del Sheet para que nunca truene la app.
+function sheetStr(v){ return (v==null) ? '' : String(v); }
+function sheetDateOnly(v){
+  var s=sheetStr(v);
+  return s.length>=10 ? s.substring(0,10) : s; // si viene "2026-07-23T05:00:00.000Z" se queda solo con "2026-07-23"
+}
 function syncReservationsFromSheet(manual){
   if(!SHEET_WEBHOOK_URL){
     if(manual) toast('Falta configurar el webhook del Sheet.','error');
@@ -777,10 +784,10 @@ function syncReservationsFromSheet(manual){
         var existing=byId[String(row.id)];
         if(!existing){
           bks.push({
-            id:row.id, name:row.nombre||'', phone:row.contacto||'',
-            service:row.servicio||'6h', date:row.fecha||'', turno:row.turno||'8am',
-            address:row.direccion||'', neighborhood:row.barrio||'', notas:row.notas||'',
-            notes:row.notas||'', email:row.email||'',
+            id:row.id, name:sheetStr(row.nombre), phone:sheetStr(row.contacto),
+            service:row.servicio||'6h', date:sheetDateOnly(row.fecha), turno:row.turno||'8am',
+            address:sheetStr(row.direccion), neighborhood:sheetStr(row.barrio), notas:sheetStr(row.notas),
+            notes:sheetStr(row.notas), email:sheetStr(row.email),
             status:'pendiente', assignedEmployee:'',
             createdAt:row.timestamp||new Date().toISOString()
           });
@@ -794,6 +801,12 @@ function syncReservationsFromSheet(manual){
         if(row.valorCobrado && existing.amountCollected==null){ existing.amountCollected=Number(row.valorCobrado); cambio=true; }
         if(row.novedad && !existing.novedad){ existing.novedad=row.novedad; cambio=true; }
         if(row.estado==='completada' && existing.status!=='completada'){ existing.status='completada'; cambio=true; }
+        // Repara datos que hayan quedado mal tipados (número en vez de texto, fecha con hora) en sincronizaciones anteriores
+        var fixedPhone=sheetStr(row.contacto);
+        if(fixedPhone && (typeof existing.phone!=='string' || existing.phone!==fixedPhone)){ existing.phone=fixedPhone; cambio=true; }
+        var fixedDate=sheetDateOnly(row.fecha);
+        if(fixedDate && existing.date!==fixedDate){ existing.date=fixedDate; cambio=true; }
+        if(typeof existing.name!=='string'){ existing.name=sheetStr(existing.name); cambio=true; }
         if(cambio) updated++;
       });
       if(added>0||updated>0){
@@ -1277,7 +1290,7 @@ function renderBookings(){
     return'<tr>'+
       '<td><strong style="color:var(--lt);font-size:11px">#'+(idx+1)+'</strong></td>'+
       '<td><strong>'+b.name+'</strong>'+(b.source==='manual'?' <span style="background:rgba(26,58,92,.08);color:var(--navy);font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap" title="Agregada a mano desde el panel">MANUAL</span>':'')+novedadBadge+'</td>'+
-      '<td><a href="https://wa.me/57'+b.phone.replace(/\D/g,'').replace(/^0/,'')+'" target="_blank" style="color:var(--g);text-decoration:none"><i class="fab fa-whatsapp"></i> '+b.phone+'</a></td>'+
+      '<td><a href="https://wa.me/57'+String(b.phone||'').replace(/\D/g,'').replace(/^0/,'')+'" target="_blank" style="color:var(--g);text-decoration:none"><i class="fab fa-whatsapp"></i> '+b.phone+'</a></td>'+
       '<td><span style="font-size:12px;font-weight:600;color:var(--navy)">'+SVC_LABEL[b.service]+'</span></td>'+
       '<td>'+fmtDate(b.date)+'</td>'+
       '<td><span style="background:rgba(26,58,92,.08);padding:3px 9px;border-radius:50px;font-size:12px;font-weight:600">'+turnoLabel(b.turno)+'</span></td>'+
@@ -1331,7 +1344,7 @@ function sendWAConfirm(id){
   var b=getBookings().find(function(x){return String(x.id)===String(id)});
   if(!b)return;
   var msg=encodeURIComponent('✅ *Confirmación QUE-K*\n\nHola '+b.name+', tu reserva está confirmada:\n🧹 '+SVC_LABEL[b.service]+'\n📅 '+fmtDate(b.date)+'\n⏰ '+turnoLabel(b.turno)+'\n📍 '+b.address+', '+b.neighborhood+'\n\nTu empleada llegará 30 minutos antes. ¡Gracias por confiar en QUE-K! 💚');
-  window.open('https://wa.me/57'+b.phone.replace(/\D/g,'').replace(/^0/,'')+'?text='+msg,'_blank');
+  window.open('https://wa.me/57'+String(b.phone||'').replace(/\D/g,'').replace(/^0/,'')+'?text='+msg,'_blank');
 }
 
 // ── CONFIRMAR RESERVA (cambia estado + avisa a la empleada por correo si tiene asignada) ──
@@ -1371,7 +1384,7 @@ function notifyEmployeeWA(id){
   var emp=EMPLOYEES.find(function(x){return x.name===b.assignedEmployee});
   if(!emp || !emp.phone){ toast('Esa empleada no tiene teléfono registrado.','error'); return; }
   var msg=encodeURIComponent('🧹 *Nuevo servicio — QUE-K*\n\nHola '+emp.name+', tienes un servicio asignado:\n\n👤 *Cliente:* '+b.name+'\n📱 *Tel. cliente:* '+b.phone+'\n🧽 *Servicio:* '+SVC_LABEL[b.service]+'\n📅 *Fecha:* '+fmtDate(b.date)+'\n⏰ *Turno:* '+turnoLabel(b.turno)+'\n📍 *Dirección:* '+b.address+', '+b.neighborhood+(b.notes?'\n📝 *Notas:* '+b.notes:'')+'\n\nRecuerda llegar 30 minutos antes. ¡Gracias! 💚');
-  window.open('https://wa.me/57'+emp.phone.replace(/\D/g,'').replace(/^0/,'')+'?text='+msg,'_blank');
+  window.open('https://wa.me/57'+String(emp.phone||'').replace(/\D/g,'').replace(/^0/,'')+'?text='+msg,'_blank');
 }
 function exportCSV(){
   var bks=getBookings();
