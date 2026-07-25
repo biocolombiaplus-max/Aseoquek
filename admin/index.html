@@ -917,6 +917,118 @@ function netProfit(svc){return svcPrice(svc)-empPay(svc)}
 // Valor real cobrado al cliente (lo que reportó la empleada al terminar). Si aún no se reporta, usa el precio de lista.
 function collected(b){return (b.amountCollected!=null && b.amountCollected!=='') ? Number(b.amountCollected) : svcPrice(b.service)}
 
+// ═══════════════════════════════════════════════════════════════
+// RECIBO DE PAGO
+// ═══════════════════════════════════════════════════════════════
+var COMPANY={
+  razonSocial:'BIO COLOMBIA PLUS',
+  nit:'88262856-1',
+  nombreComercial:'QUE-K Aseo Profesional',
+  email:'quekcucuta@gmail.com',
+  telefono:'312 601 4769',
+  direccion:'Calle 3 # 7-41, Centro, Cúcuta, Norte de Santander, Colombia',
+  web:'aseoquek.com'
+};
+var RECEIPT_KEY='quek_receipt_counter';
+function nextReceiptNumber(){
+  var n=parseInt(localStorage.getItem(RECEIPT_KEY)||'0',10)+1;
+  localStorage.setItem(RECEIPT_KEY,String(n));
+  return 'QK-'+new Date().getFullYear()+'-'+String(n).padStart(4,'0');
+}
+function ensureReceiptNumber(b){
+  if(!b.receiptNumber){
+    b.receiptNumber=nextReceiptNumber();
+    var bks=getBookings();
+    var idx=bks.findIndex(function(x){return String(x.id)===String(b.id)});
+    if(idx>-1){bks[idx].receiptNumber=b.receiptNumber; setBookings(bks);}
+  }
+  return b.receiptNumber;
+}
+function reciboHTML(b){
+  var numero=ensureReceiptNumber(b);
+  var fechaEmision=new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
+  var precio=collected(b);
+  var metodoLbl=b.paymentMethod==='efectivo'?'Efectivo':(b.paymentMethod==='transferencia'?'Transferencia':'No especificado');
+  var svcLbl=SVC_LABEL[b.service]||b.service;
+  var emailCliente=b.email||'';
+  return '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    +'<title>Recibo '+numero+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}'
+    +'body{background:#eef2f6;padding:24px;color:#1A3A5C}'
+    +'.sheet{max-width:720px;margin:0 auto;background:#fff;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,.12);padding:40px;border-top:6px solid #00C896}'
+    +'.top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:20px;padding-bottom:24px;border-bottom:2px solid #eef2f6}'
+    +'.brand{font-size:22px;font-weight:800;color:#1A3A5C}.brand span{color:#00C896}'
+    +'.legal{font-size:11.5px;color:#718096;line-height:1.6;margin-top:6px}'
+    +'.doc-title{text-align:right}'
+    +'.doc-title h1{font-size:18px;letter-spacing:.5px;color:#1A3A5C}'
+    +'.doc-title .num{font-size:14px;font-weight:700;color:#00C896;margin-top:4px}'
+    +'.doc-title .fecha{font-size:12px;color:#718096;margin-top:2px}'
+    +'.block{margin-top:24px}'
+    +'.block h3{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:#718096;margin-bottom:6px}'
+    +'.block p{font-size:14px;line-height:1.6}'
+    +'table{width:100%;border-collapse:collapse;margin-top:24px}'
+    +'th{background:#f4f6f9;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:#718096;padding:10px 12px}'
+    +'td{padding:12px;font-size:14px;border-top:1px solid #eef2f6}'
+    +'.total-row{display:flex;justify-content:flex-end;margin-top:18px;gap:40px;align-items:center}'
+    +'.total-lbl{font-size:13px;color:#718096}'
+    +'.total-val{font-size:24px;font-weight:800;color:#00C896}'
+    +'.badge{display:inline-block;background:#e8f5e9;color:#2e7d32;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;margin-top:6px}'
+    +'.disclaimer{margin-top:28px;font-size:11px;color:#a0aec0;line-height:1.6;border-top:1px solid #eef2f6;padding-top:14px}'
+    +'.thanks{margin-top:18px;text-align:center;font-size:13px;color:#1A3A5C;font-weight:600}'
+    +'.actions{max-width:720px;margin:20px auto 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center}'
+    +'.actions button,.actions input{font-family:Arial,sans-serif;font-size:13px;padding:10px 16px;border-radius:8px;border:none;cursor:pointer}'
+    +'.btn-print{background:#1A3A5C;color:#fff;font-weight:700}'
+    +'.btn-send{background:#00C896;color:#fff;font-weight:700}'
+    +'.actions input{border:1.5px solid #cbd5e0;flex:1;min-width:200px}'
+    +'#sendMsg{font-size:12px;margin-top:6px;max-width:720px;margin-left:auto;margin-right:auto}'
+    +'@media print{body{background:#fff;padding:0}.sheet{box-shadow:none;border-radius:0;max-width:100%}.actions,#sendMsg{display:none}}'
+    +'</style></head><body>'
+    +'<div class="sheet">'
+      +'<div class="top">'
+        +'<div><div class="brand">QUE-<span>K</span> Aseo Profesional</div>'
+          +'<div class="legal">'+COMPANY.razonSocial+' · NIT '+COMPANY.nit+'<br>'+COMPANY.direccion+'<br>Tel: '+COMPANY.telefono+' · '+COMPANY.email+' · '+COMPANY.web+'</div></div>'
+        +'<div class="doc-title"><h1>RECIBO DE PAGO</h1><div class="num">N.° '+numero+'</div><div class="fecha">Emitido: '+fechaEmision+'</div></div>'
+      +'</div>'
+      +'<div class="block"><h3>Cliente</h3><p><strong>'+(b.name||'—')+'</strong><br>Tel: '+(b.phone||'—')+(emailCliente?'<br>Correo: '+emailCliente:'')+'</p></div>'
+      +'<table><thead><tr><th>Servicio</th><th>Fecha del servicio</th><th>Turno</th><th style="text-align:right">Valor</th></tr></thead>'
+      +'<tbody><tr><td>'+svcLbl+'</td><td>'+fmtDate(b.date)+'</td><td>'+turnoLabel(b.turno)+'</td><td style="text-align:right;font-weight:700">'+fmt(precio)+'</td></tr></tbody></table>'
+      +'<div class="total-row"><div class="total-lbl">Total pagado<br><span class="badge">'+metodoLbl+'</span></div><div class="total-val">'+fmt(precio)+'</div></div>'
+      +'<div class="thanks">¡Gracias por confiar en QUE-K Aseo Profesional! 💚</div>'
+      +'<div class="disclaimer">Este documento es un comprobante interno de pago expedido por '+COMPANY.razonSocial+' (NIT '+COMPANY.nit+') y no constituye una factura electrónica de venta ante la DIAN.</div>'
+    +'</div>'
+    +'<div class="actions">'
+      +'<button class="btn-print" onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button>'
+      +'<input type="email" id="sendEmailInput" placeholder="correo del cliente" value="'+emailCliente+'">'
+      +'<button class="btn-send" onclick="enviarReciboDesdePopup()">📧 Enviar por correo</button>'
+    +'</div>'
+    +'<div id="sendMsg"></div>'
+    +'<script>'
+    +'function enviarReciboDesdePopup(){'
+      +'var email=document.getElementById("sendEmailInput").value.trim();'
+      +'var msgEl=document.getElementById("sendMsg");'
+      +'if(!email){msgEl.style.color="#c0392b";msgEl.textContent="Escribe el correo del cliente.";return;}'
+      +'msgEl.style.color="#718096";msgEl.textContent="Enviando...";'
+      +'fetch('+JSON.stringify(SHEET_WEBHOOK_URL)+',{method:"POST",mode:"no-cors",body:new URLSearchParams({'
+        +'accion:"enviarRecibo", numero:'+JSON.stringify(numero)+', email:email, nombre:'+JSON.stringify(b.name||'')+', '
+        +'servicio:'+JSON.stringify(svcLbl)+', fecha:'+JSON.stringify(fmtDate(b.date))+', turno:'+JSON.stringify(turnoLabel(b.turno))+', '
+        +'valor:'+JSON.stringify(fmt(precio))+', metodoPago:'+JSON.stringify(metodoLbl)+
+      '})}).then(function(){msgEl.style.color="#2e7d32";msgEl.textContent="✅ Enviado a "+email+" (revisa que llegue en unos minutos).";'
+      +'}).catch(function(){msgEl.style.color="#c0392b";msgEl.textContent="No se pudo enviar. Intenta de nuevo.";});'
+    +'}'
+    +'<\/script>'
+    +'</body></html>';
+}
+function openRecibo(id){
+  var b=getBookings().find(function(x){return String(x.id)===String(id)});
+  if(!b){toast('Reserva no encontrada.','error');return}
+  if(b.status!=='completada'){toast('Solo se puede generar recibo de servicios ya completados.','error');return}
+  var w=window.open('','_blank');
+  if(!w){toast('El navegador bloqueó la ventana. Permite pop-ups para este sitio.','error');return}
+  w.document.write(reciboHTML(b));
+  w.document.close();
+}
+
 // ── Auth ──────────────────────────────────────────────────────
 function doLogin(){
   var u=document.getElementById('lUser').value.trim();
@@ -1159,6 +1271,7 @@ function renderBookings(){
       '<button class="btn-sm g" onclick="confirmarReserva(\''+b.id+'\')" title="Confirmar reserva y avisar a la empleada por correo"><i class="fas fa-check"></i></button>'+
       '<button class="btn-sm navy" onclick="sendWAConfirm(\''+b.id+'\')" title="Confirmar al cliente por WhatsApp"><i class="fab fa-whatsapp"></i></button>'+
       '<button class="btn-sm acc" onclick="notifyEmployeeWA(\''+b.id+'\')" title="Enviar los datos a la empleada por WhatsApp"><i class="fas fa-paper-plane"></i></button>'+
+      (b.status==='completada'?'<button class="btn-sm navy" onclick="openRecibo(\''+b.id+'\')" title="Generar recibo de pago"><i class="fas fa-receipt"></i></button>':'')+
       '<button class="btn-red btn-sm" onclick="deleteBk(\''+b.id+'\')" title="Eliminar"><i class="fas fa-trash"></i></button></div></td>'+
       '</tr>';
   }).join('');
