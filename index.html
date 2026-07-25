@@ -1535,15 +1535,48 @@ function hideSocialProof(){
 }
 
 // ── FOTOS/DATOS DE EMPLEADAS DESDE FIREBASE (las aprueba el admin) ──
+var TEAM_BASE_IDS = ['maria','luzdary','jeknaly'];
+function teamAvatarDataURI(name){
+  var initials = (name||'').trim().split(/\s+/).slice(0,2).map(function(w){return w[0]||''}).join('').toUpperCase() || 'QK';
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#00C896"/><text x="100" y="122" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="700" fill="#ffffff" text-anchor="middle">' + initials + '</text></svg>';
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+}
+function extraTeamCardHTML(id, d){
+  var name = d.fullName || d.name || id;
+  var role = d.role || 'Especialista en Aseo';
+  var exp = d.experience || 'Nueva en el equipo QUE-K';
+  var photo = d.photoPublic || teamAvatarDataURI(name);
+  return '<div class="team-card">'
+    + '<div class="team-photo"><img id="teamPhoto-' + id + '" src="' + photo + '" alt="' + name + '">'
+    + '<span class="team-verified"><i class="fas fa-shield-halved"></i> Verificada</span></div>'
+    + '<div class="team-info"><span class="team-badge"><i class="fas fa-heart"></i> Madre cabeza de hogar</span>'
+    + '<h3 id="teamName-' + id + '">' + name + '</h3>'
+    + '<div class="role" id="teamRole-' + id + '">' + role + '</div>'
+    + '<p>' + exp + '</p>'
+    + '<div class="team-social">'
+    + '<a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>'
+    + '<a href="https://wa.me/573126014769" title="WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a>'
+    + '<a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>'
+    + '</div></div></div>';
+}
 document.addEventListener('DOMContentLoaded', function(){
   if (!window.QuekFB || !window.QuekFB.configured) return;
   window.QuekFB.getAllEmpleadas().then(function(data){
-    ['maria','luzdary','jeknaly'].forEach(function(id){
+    TEAM_BASE_IDS.forEach(function(id){
       var d = data[id];
       if (!d) return;
+      if (d.activo === false) { var card = document.getElementById('teamPhoto-'+id); if (card) card.closest('.team-card').style.display = 'none'; return; }
       if (d.photoPublic) { var img = document.getElementById('teamPhoto-'+id); if (img) img.src = d.photoPublic; }
       if (d.fullName) { var nm = document.getElementById('teamName-'+id); if (nm) nm.textContent = d.fullName; }
       if (d.role) { var rl = document.getElementById('teamRole-'+id); if (rl) rl.textContent = d.role; }
+    });
+    var grid = document.querySelector('.team-grid');
+    if (!grid) return;
+    Object.keys(data).forEach(function(id){
+      var d = data[id];
+      if (!d || d.activo === false || !d.username) return;
+      if (TEAM_BASE_IDS.indexOf(id) !== -1) return;
+      grid.insertAdjacentHTML('beforeend', extraTeamCardHTML(id, d));
     });
   }).catch(function(){});
 });

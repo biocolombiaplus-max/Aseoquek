@@ -255,7 +255,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <label>Contraseña</label>
       <div class="field-wrap"><i class="fas fa-key"></i><input type="password" id="uPass" placeholder="tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     </div>
-    <button class="btn-login" onclick="doLogin()"><i class="fas fa-right-to-bracket"></i> Ingresar</button>
+    <button class="btn-login" id="loginBtn" onclick="doLogin()"><i class="fas fa-right-to-bracket"></i> Ingresar</button>
     <div class="login-err" id="loginErr"><i class="fas fa-circle-exclamation"></i> Usuario o contraseña incorrectos.</div>
   </div>
 </div>
@@ -717,19 +717,50 @@ function goTab(name){
 }
 
 // ── LOGIN ──
+function denyLogin(){
+  document.getElementById('loginErr').style.display='flex';
+  document.getElementById('uPass').value='';
+  var btn=document.getElementById('loginBtn');
+  btn.disabled=false; btn.innerHTML='<i class="fas fa-right-to-bracket"></i> Ingresar';
+}
+function loginAs(key,empData){
+  document.getElementById('loginErr').style.display='none';
+  empKey=key; emp=empData;
+  sessionStorage.setItem('quek_emp',JSON.stringify({key:key}));
+  showDash();
+}
+function initialsOf(name){
+  return (name||'').trim().split(/\s+/).slice(0,2).map(function(w){return w[0]||''}).join('').toUpperCase()||'QK';
+}
+function avatarDataURI(initials){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#00C896"/><text x="100" y="122" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="700" fill="#ffffff" text-anchor="middle">'+initials+'</text></svg>';
+  return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+}
 function doLogin(){
   var u=document.getElementById('uUser').value.trim().toLowerCase();
   var p=document.getElementById('uPass').value;
-  var err=document.getElementById('loginErr');
-  if(EMPLOYEES[u]&&EMPLOYEES[u].password===p){
-    err.style.display='none';
-    empKey=u; emp=EMPLOYEES[u];
-    sessionStorage.setItem('quek_emp',JSON.stringify({key:u}));
-    showDash();
-  } else {
-    err.style.display='flex';
-    document.getElementById('uPass').value='';
+  var btn=document.getElementById('loginBtn');
+  var localMatch=EMPLOYEES[u]&&EMPLOYEES[u].password===p;
+
+  if(!window.QuekFB || !window.QuekFB.configured){
+    if(localMatch){ loginAs(u,EMPLOYEES[u]); } else { denyLogin(); }
+    return;
   }
+
+  btn.disabled=true; btn.innerHTML='Verificando...';
+  window.QuekFB.getEmpleada(u).then(function(fb){
+    if(fb && fb.activo===false){ denyLogin(); return; } // se le quitó el acceso
+    if(fb && fb.password){ // empleada creada/gestionada desde el panel: manda la contraseña de Firebase
+      if(fb.password===p){
+        var tagsArr=fb.tags?fb.tags.split(',').map(function(t){return t.trim()}).filter(Boolean):[];
+        loginAs(u,{password:fb.password,fullName:fb.fullName||fb.name||u,photo:fb.photoPublic||avatarDataURI(initialsOf(fb.fullName||fb.name||u)),specialty:fb.role||'',experience:fb.experience||'',phone:fb.phone||'',tags:tagsArr});
+      } else { denyLogin(); }
+      return;
+    }
+    if(localMatch){ loginAs(u,EMPLOYEES[u]); } else { denyLogin(); }
+  }).catch(function(){
+    if(localMatch){ loginAs(u,EMPLOYEES[u]); } else { denyLogin(); }
+  });
 }
 
 function doLogout(){

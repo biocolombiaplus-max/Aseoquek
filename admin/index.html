@@ -465,7 +465,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
 
     <!-- ── EMPLEADAS ──────────────────────────────────────────── -->
     <div class="tab-content" id="tab-empleadas">
-      <div class="sec-hd"><h2>Nuestras Colaboradoras</h2></div>
+      <div class="sec-hd"><h2>Nuestras Colaboradoras</h2><button class="btn-g" onclick="openAddEmp()"><i class="fas fa-user-plus"></i>Agregar empleada</button></div>
 
       <div style="background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:22px;margin-bottom:20px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:10px">
@@ -694,6 +694,34 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
   </div>
 </div>
 
+<!-- AGREGAR EMPLEADA -->
+<div class="modal-bg" id="addEmpModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-user-plus" style="color:var(--g);margin-right:8px"></i>Agregar nueva empleada</h3>
+    <div class="fg"><label>Nombre completo <span style="color:var(--acc)">*</span></label><input type="text" id="ae_name" class="inp" placeholder="Nombre y apellido"></div>
+    <div class="cfg-row">
+      <div class="fg"><label>Usuario para el portal <span style="color:var(--acc)">*</span></label><input type="text" id="ae_user" class="inp" placeholder="sin espacios ni tildes"></div>
+      <div class="fg"><label>Contraseña <span style="color:var(--acc)">*</span></label><input type="text" id="ae_pass" class="inp" placeholder="Ej: su cédula"></div>
+    </div>
+    <div class="cfg-row">
+      <div class="fg"><label>Teléfono</label><input type="text" id="ae_phone" class="inp"></div>
+      <div class="fg"><label>Correo</label><input type="email" id="ae_email" class="inp"></div>
+    </div>
+    <div class="fg"><label>Especialidad (se ve en la página web)</label><input type="text" id="ae_role" class="inp" placeholder="Especialista en Aseo General"></div>
+    <div class="cfg-row">
+      <div class="fg"><label>Experiencia</label><input type="text" id="ae_exp" class="inp" placeholder="Nueva en el equipo QUE-K"></div>
+      <div class="fg"><label>Etiquetas</label><input type="text" id="ae_tags" class="inp" placeholder="Hogares, Aseo General"></div>
+    </div>
+    <div style="background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.15);border-radius:8px;padding:12px;font-size:12px;color:var(--lt);margin-top:4px">
+      <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Con el usuario y contraseña que pongas aquí, ella ya puede entrar a su portal desde su celular. Necesita Firebase configurado (ya lo tienes activo) para que funcione en cualquier dispositivo.
+    </div>
+    <div class="modal-btns">
+      <button class="btn-outline-g" onclick="closeModal('addEmpModal')">Cancelar</button>
+      <button class="btn-g" onclick="saveNewEmpleada()"><i class="fas fa-save"></i>Guardar empleada</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
 
@@ -782,7 +810,7 @@ function syncReservationsFromSheet(manual){
       }
     })
     .catch(function(err){
-      if(manual) toast('No se pudo leer el Sheet: '+err.message+'. Revisa que el Apps Script esté bien implementado (doGet).','error');
+      toast('No se pudieron cargar las reservas del sitio: '+err.message+'. Dale a "Actualizar reservas del sitio" para reintentar.','error');
     });
 }
 function getExpenses(){try{return JSON.parse(localStorage.getItem(EXP_KEY)||'[]')}catch(e){return[]}}
@@ -1420,8 +1448,7 @@ function renderEmployees(){
       if(d){ saveRestScheduleLocal(restViewWeekStart,d); renderRestSchedule(); }
     }).catch(function(){});
   }
-  if(!empleadasLoadedFromFB && window.QuekFB && window.QuekFB.configured){
-    empleadasLoadedFromFB=true;
+  if(window.QuekFB && window.QuekFB.configured){
     window.QuekFB.getAllEmpleadas().then(function(data){
       EMPLOYEES.forEach(function(emp){
         var d=data[emp.id];
@@ -1433,11 +1460,30 @@ function renderEmployees(){
         if(d.tags) emp.tags=d.tags;
         if(d.phone) emp.phone=d.phone;
       });
+      // quita del panel a quien el admin marcó como inactiva (ya no trabaja con nosotros)
+      EMPLOYEES=EMPLOYEES.filter(function(emp){return data[emp.id]?data[emp.id].activo!==false:true});
+      // agrega empleadas creadas desde el panel (en este dispositivo u otro) que aún no estén en la lista local
+      Object.keys(data).forEach(function(id){
+        var d=data[id];
+        if(!d || d.activo===false || !d.username) return;
+        if(EMPLOYEES.some(function(e){return e.id===id})) return;
+        EMPLOYEES.push({id:id,name:d.fullName||d.name||id,role:d.role||'Especialista en Aseo',img:d.photoPublic||avatarDataURI(initialsOf(d.fullName||d.name||id)),experience:d.experience||'Nueva en el equipo QUE-K',tags:d.tags||'',phone:d.phone||'',email:d.email||''});
+      });
       renderEmployeeCards();
     }).catch(function(){renderEmployeeCards();});
   } else {
     renderEmployeeCards();
   }
+}
+function initialsOf(name){
+  return (name||'').trim().split(/\s+/).slice(0,2).map(function(w){return w[0]||''}).join('').toUpperCase()||'QK';
+}
+function avatarDataURI(initials){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#00C896"/><text x="100" y="122" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="700" fill="#ffffff" text-anchor="middle">'+initials+'</text></svg>';
+  return 'data:image/svg+xml;base64,'+btoa(unescape(encodeURIComponent(svg)));
+}
+function slugify(s){
+  return (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'').trim();
 }
 
 function renderEmployeeCards(){
@@ -1458,7 +1504,8 @@ function renderEmployeeCards(){
 
     return'<div class="emp-card">'+
       '<div class="emp-top"><img class="emp-ava" src="'+emp.img+'" alt="'+emp.name+'"><div style="flex:1"><div class="emp-nm">'+emp.name+'</div><div class="emp-role">'+emp.role+'</div></div>'+
-      '<button class="btn-logout" title="Editar" onclick="openEditEmp(\''+emp.id+'\')" style="color:rgba(255,255,255,.7)"><i class="fas fa-pen"></i></button></div>'+
+      '<button class="btn-logout" title="Editar" onclick="openEditEmp(\''+emp.id+'\')" style="color:rgba(255,255,255,.7)"><i class="fas fa-pen"></i></button>'+
+      '<button class="btn-logout" title="Ya no trabaja con nosotros" onclick="eliminarEmpleada(\''+emp.id+'\')" style="color:rgba(255,255,255,.7)"><i class="fas fa-user-slash"></i></button></div>'+
       '<div class="emp-body">'+
       '<div style="display:flex;align-items:center;gap:6px;margin-bottom:12px;font-size:12px;font-weight:700;color:'+reliabilityColor(reliab)+'"><i class="fas fa-shield-halved"></i>'+reliabilityLabel(reliab)+
         (reliab!=null?' <span style="color:var(--lt);font-weight:400">('+myBks.filter(function(b){return b.status==="completada"||b.status==="incumplida"}).length+' turnos evaluados)</span>':'')+
@@ -1479,6 +1526,48 @@ function renderEmployeeCards(){
       '<a href="https://wa.me/573126014769" target="_blank" class="btn-outline-g" style="flex:1;justify-content:center;font-size:12px"><i class="fab fa-whatsapp"></i>WhatsApp</a></div>'+
       '</div></div>';
   }).join('');
+}
+
+// ── AGREGAR EMPLEADA ──
+function openAddEmp(){
+  ['ae_name','ae_user','ae_pass','ae_phone','ae_email','ae_role','ae_exp','ae_tags'].forEach(function(id){document.getElementById(id).value=''});
+  document.getElementById('addEmpModal').classList.add('open');
+}
+function saveNewEmpleada(){
+  var name=document.getElementById('ae_name').value.trim();
+  var user=slugify(document.getElementById('ae_user').value);
+  var pass=document.getElementById('ae_pass').value;
+  var phone=document.getElementById('ae_phone').value.trim();
+  var email=document.getElementById('ae_email').value.trim();
+  var role=document.getElementById('ae_role').value.trim()||'Especialista en Aseo';
+  var exp=document.getElementById('ae_exp').value.trim()||'Nueva en el equipo QUE-K';
+  var tags=document.getElementById('ae_tags').value.trim();
+
+  if(!name||!user||!pass){ toast('Nombre, usuario y contraseña son obligatorios.','error'); return; }
+  if(EMPLOYEES.some(function(e){return e.id===user})){ toast('Ese usuario ya existe. Elige otro.','error'); return; }
+  if(!window.QuekFB || !window.QuekFB.configured){ toast('Necesitas Firebase configurado para agregar empleadas nuevas (para que puedan entrar desde su celular).','error'); return; }
+
+  var photo=avatarDataURI(initialsOf(name));
+  var data={fullName:name,name:name,username:user,password:pass,phone:phone,role:role,experience:exp,tags:tags,email:email,photoPublic:photo,activo:true};
+  window.QuekFB.saveEmpleada(user,data).then(function(){
+    EMPLOYEES.push({id:user,name:name,role:role,img:photo,experience:exp,tags:tags,phone:phone,email:email});
+    closeModal('addEmpModal');
+    renderEmployeeCards();
+    toast(name+' fue agregada. Ya puede entrar a su portal con el usuario "'+user+'".');
+  }).catch(function(err){
+    toast('No se pudo guardar: '+err.message,'error');
+  });
+}
+function eliminarEmpleada(id){
+  var emp=EMPLOYEES.find(function(e){return e.id===id});
+  if(!emp) return;
+  if(!confirm('¿'+emp.name+' ya no trabaja con ustedes?\n\nSe le quitará el acceso al portal y dejará de aparecer en el panel y en la página web. Su historial de servicios y pagos se conserva para tu contabilidad.')) return;
+  if(window.QuekFB && window.QuekFB.configured){
+    window.QuekFB.saveEmpleada(id,{activo:false}).catch(function(){});
+  }
+  EMPLOYEES=EMPLOYEES.filter(function(e){return e.id!==id});
+  renderEmployeeCards();
+  toast(emp.name+' fue eliminada del equipo.');
 }
 
 // ── EDITAR EMPLEADA ──
