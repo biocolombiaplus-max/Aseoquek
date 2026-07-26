@@ -559,7 +559,7 @@ function cardHTML(b, showTerminar){
   var pago=EMP_PAY[b.service]?'$'+EMP_PAY[b.service].toLocaleString('es-CO'):'';
 
   var terminBtn='';
-  if(showTerminar && isToday && !isComp && !isCan){
+  if(showTerminar && b.date<=today && !isComp && !isCan){
     terminBtn='<button class="btn-terminar" onclick="terminarServicio('+b.id+')">'
       +'<i class="fab fa-whatsapp"></i> ¡Servicio terminado! Avisar al admin'
       +'</button>';
