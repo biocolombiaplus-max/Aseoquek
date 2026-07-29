@@ -1390,7 +1390,16 @@ function statusClassAdmin(s){
 function assignEmp(id,emp){
   var bks=getBookings();
   var b=bks.find(function(x){return String(x.id)===String(id)});
-  if(b){b.assignedEmployee=emp;setBookings(bks);toast('Empleada asignada: '+(emp||'Sin asignar'))}
+  if(!b) return;
+  b.assignedEmployee=emp;
+  setBookings(bks);
+  toast('Empleada asignada: '+(emp||'Sin asignar'));
+  // Deja la asignación guardada en el Sheet para que le aparezca en su portal, así esté en otro celular
+  if(SHEET_WEBHOOK_URL){
+    try{
+      fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'asignarEmpleada', id:id, empleada:emp||''})}).catch(function(){});
+    }catch(e){}
+  }
 }
 function changeStatus(id,status){
   var bks=getBookings();
@@ -1512,7 +1521,12 @@ function saveNewBooking(){
         servicio:svc, detalle:SVC_LABEL[svc], fecha:date, turno:turno,
         direccion:addr, barrio:barrio,
         notas:(notes?notes+' ':'')+'[Agendada manualmente por el administrador]'
-      })}).catch(function(){});
+      })}).then(function(){
+        // espera a que la fila exista en el Sheet antes de marcar la empleada asignada, para evitar condición de carrera
+        if(emp){
+          return fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'asignarEmpleada', id:id, empleada:emp})});
+        }
+      }).catch(function(){});
     }catch(e){}
   }
 

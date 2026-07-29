@@ -70,6 +70,24 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--blue);ove
 
 /* ── SECTION HEAD ── */
 .sec-title{font-size:.85rem;font-weight:700;color:var(--blue);margin:16px 0 10px;display:flex;align-items:center;gap:7px}
+.sec-title span{display:flex;align-items:center;gap:7px}
+.btn-refresh{background:var(--bg);border:1px solid var(--gray-2);color:var(--blue);width:30px;height:30px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.8rem;transition:.2s}
+.btn-refresh:active{transform:scale(.92)}
+.btn-refresh:disabled{opacity:.5}
+
+/* ── COBRO POR CICLO ── */
+.payout-card{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.payout-dots{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.payout-dot{width:34px;height:34px;border-radius:50%;background:var(--gray-2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;transition:.2s}
+.payout-dot.filled{background:linear-gradient(135deg,var(--green),var(--green-d));box-shadow:0 3px 10px rgba(0,200,150,.35)}
+.payout-progress-txt{text-align:center;font-size:.82rem;color:var(--gray);margin-bottom:4px}
+.payout-progress-txt strong{color:var(--blue)}
+.payout-total{text-align:center;font-size:1.3rem;font-weight:800;color:var(--green-d);margin:8px 0}
+.payout-extra{text-align:center;font-size:.74rem;color:var(--gold);margin-bottom:6px}
+.btn-cobrar{width:100%;padding:14px;border:none;border-radius:50px;font-family:'Poppins',sans-serif;font-size:.92rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px;transition:.2s}
+.btn-cobrar.enabled{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;box-shadow:0 4px 16px rgba(37,211,102,.35)}
+.btn-cobrar.enabled:active{transform:scale(.97)}
+.btn-cobrar.disabled{background:var(--gray-2);color:var(--gray);cursor:not-allowed}
 .sec-title i{color:var(--green);font-size:1rem}
 
 /* ── BOOKING CARD ── */
@@ -280,10 +298,12 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <div class="tab-pane on" id="tab-inicio">
       <div class="banner banner-gold"><i class="fas fa-clock"></i><div>Recuerda llegar <strong>30 minutos antes</strong> del horario indicado al cliente para prepararte y comenzar puntual.</div></div>
       <div class="banner banner-blue" id="restDayBanner" style="display:none"><i class="fas fa-mug-hot"></i><div>Tu día de descanso esta semana es el <strong id="restDayText">—</strong>.</div></div>
-      <div class="sec-title"><i class="fas fa-calendar-day"></i>Servicios de Hoy</div>
+      <div class="sec-title" style="justify-content:space-between"><span><i class="fas fa-calendar-day"></i>Servicios de Hoy</span><button id="refreshBtn" class="btn-refresh" onclick="actualizarManual()" title="Actualizar"><i class="fas fa-rotate"></i></button></div>
       <div id="todayBks"></div>
       <div class="sec-title"><i class="fas fa-chart-bar"></i>Mis Estadísticas</div>
       <div class="stats-grid" id="statsGrid"></div>
+      <div class="sec-title"><i class="fas fa-sack-dollar"></i>Cobro por Ciclo (cada 6 servicios)</div>
+      <div class="payout-card" id="payoutCard"></div>
     </div>
 
     <!-- ── AGENDA ── -->
@@ -307,6 +327,31 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       </div>
       <div class="banner banner-blue" id="privatePhotoNote" style="display:none"><i class="fas fa-lock"></i><div>Esta foto solo la ves tú. La que aparece en la página web para los clientes la controla el administrador.</div></div>
       <div class="info-card" id="profInfo"></div>
+
+      <div class="sec-title"><i class="fas fa-building-columns"></i>Cuenta para tus pagos</div>
+      <div class="banner banner-gold"><i class="fas fa-shield-halved"></i><div>La cuenta debe estar <strong>a tu nombre</strong> (<span id="accNameReminder">—</span>). No se harán pagos a cuentas de terceros.</div></div>
+      <div class="prof-card" style="align-items:stretch;padding:18px">
+        <div class="field">
+          <label>Banco</label>
+          <div class="field-wrap"><i class="fas fa-university"></i><input type="text" id="accBanco" placeholder="Ej: Bancolombia, Nequi, Daviplata..."></div>
+        </div>
+        <div class="field">
+          <label>Tipo de cuenta</label>
+          <div class="field-wrap"><i class="fas fa-credit-card"></i>
+            <select id="accTipo" style="width:100%;height:46px;border:2px solid var(--gray-2);border-radius:9px;padding:0 14px 0 40px;font-family:'Poppins',sans-serif;font-size:.88rem;color:var(--blue);outline:none;background:#fff">
+              <option value="">Selecciona...</option>
+              <option value="Ahorros">Ahorros</option>
+              <option value="Corriente">Corriente</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Número de cuenta</label>
+          <div class="field-wrap"><i class="fas fa-hashtag"></i><input type="text" id="accNumero" placeholder="Número de cuenta o celular (Nequi/Daviplata)"></div>
+        </div>
+        <button class="btn-login" onclick="guardarCuenta()"><i class="fas fa-save"></i> Guardar cuenta</button>
+      </div>
+
       <div class="admin-note"><i class="fas fa-shield-halved"></i> Para cambios de tus demás datos, comunícate con el administrador.</div>
     </div>
 
@@ -430,6 +475,50 @@ function getBookings(){
 }
 
 function saveBookings(bks){localStorage.setItem('quek_bookings',JSON.stringify(bks))}
+
+// Google Sheets a veces guarda columnas numéricas o de fecha con hora en vez de texto plano; normalizamos.
+function sheetStr(v){ return (v==null) ? '' : String(v); }
+function sheetDateOnly(v){ var s=sheetStr(v); return s.length>=10 ? s.substring(0,10) : s; }
+
+// ── TRAE LAS RESERVAS DEL SHEET (para que le aparezcan sus servicios aunque esté en otro celular) ──
+function syncBookingsFromSheet(){
+  if(!SHEET_WEBHOOK_URL) return Promise.resolve();
+  return fetch(SHEET_WEBHOOK_URL+'?accion=listarReservas')
+    .then(function(r){ if(!r.ok) throw new Error('status '+r.status); return r.json(); })
+    .then(function(rows){
+      if(!Array.isArray(rows)) return;
+      var bks=getBookings();
+      var byId={};
+      bks.forEach(function(b){byId[String(b.id)]=b});
+      rows.forEach(function(row){
+        if(!row.id) return;
+        var existing=byId[String(row.id)];
+        var asignada=sheetStr(row.empleadaAsignada);
+        var pagado=row.pagoCobrado==='si';
+        if(!existing){
+          bks.push({
+            id:row.id, name:sheetStr(row.nombre), phone:sheetStr(row.contacto),
+            service:row.servicio||'6h', date:sheetDateOnly(row.fecha), turno:row.turno||'8am',
+            address:sheetStr(row.direccion), neighborhood:sheetStr(row.barrio), notas:sheetStr(row.notas),
+            notes:sheetStr(row.notas), email:sheetStr(row.email),
+            status: row.estado==='completada' ? 'completada' : (asignada ? 'confirmada' : 'pendiente'),
+            assignedEmployee:asignada,
+            paymentMethod:row.metodoPago||'', amountCollected:row.valorCobrado?Number(row.valorCobrado):null,
+            novedad:row.novedad||'', paidOut:pagado,
+            createdAt:row.timestamp||new Date().toISOString()
+          });
+          return;
+        }
+        // repara tipos de sincronizaciones viejas y trae lo que haya cambiado desde el panel u otro celular
+        existing.phone=sheetStr(row.contacto)||existing.phone;
+        existing.date=sheetDateOnly(row.fecha)||existing.date;
+        if(asignada) existing.assignedEmployee=asignada;
+        if(row.estado==='completada') existing.status='completada';
+        if(pagado) existing.paidOut=true;
+      });
+      saveBookings(bks);
+    }).catch(function(){});
+}
 
 function myBookings(){
   var all=getBookings();
@@ -666,6 +755,24 @@ function renderProfile(){
    +row('fa-envelope','Correo admin','quekcucuta@gmail.com')
    +row('fa-location-dot','Ciudad','Cúcuta, Norte de Santander')
    +row('fa-shield-halved','Estado','Empleada verificada ✅');
+  document.getElementById('accNameReminder').textContent=emp.fullName;
+  document.getElementById('accBanco').value=emp.banco||'';
+  document.getElementById('accTipo').value=emp.tipoCuenta||'';
+  document.getElementById('accNumero').value=emp.cuenta||'';
+}
+function guardarCuenta(){
+  var banco=document.getElementById('accBanco').value.trim();
+  var tipo=document.getElementById('accTipo').value;
+  var numero=document.getElementById('accNumero').value.trim();
+  if(!banco||!tipo||!numero){toast('Completa banco, tipo y número de cuenta.','error');return;}
+  if(!window.QuekFB || !window.QuekFB.configured){toast('Esta función todavía no está activada. Avísale al administrador.','error');return;}
+  window.QuekFB.saveEmpleada(empKey,{banco:banco,tipoCuenta:tipo,cuenta:numero}).then(function(){
+    emp.banco=banco; emp.tipoCuenta=tipo; emp.cuenta=numero;
+    toast('Cuenta guardada correctamente.');
+    renderPayout();
+  }).catch(function(err){
+    toast('No se pudo guardar: '+err.message,'error');
+  });
 }
 
 // ── CAMBIAR MI FOTO (privada, solo la ve ella) ──
@@ -701,6 +808,9 @@ function syncEmpleadaFromFB(){
     if(d.experience) emp.experience=d.experience;
     if(d.tags) emp.tags=(typeof d.tags==='string') ? d.tags.split(',').map(function(t){return t.trim()}).filter(Boolean) : d.tags;
     if(d.phone) emp.phone=d.phone;
+    if(d.banco) emp.banco=d.banco;
+    if(d.tipoCuenta) emp.tipoCuenta=d.tipoCuenta;
+    if(d.cuenta) emp.cuenta=d.cuenta;
     emp.photo=d.photoPrivate||d.photoPublic||emp.photo;
     emp._hasPrivatePhoto=!!d.photoPrivate;
   }).catch(function(){});
@@ -780,11 +890,24 @@ function showDash(){
   syncEmpleadaFromFB().then(function(){
     document.getElementById('hdrPhoto').src=emp.photo;
     document.getElementById('hdrName').textContent=emp.fullName;
-    renderToday(); renderStats(); renderProfile(); renderRestDay();
+    renderToday(); renderStats(); renderProfile(); renderRestDay(); renderPayout();
     document.getElementById('loginPage').style.display='none';
     var d=document.getElementById('dashPage');
     d.style.display='flex'; d.style.flexDirection='column';
     goTab('inicio');
+  });
+  syncBookingsFromSheet().then(refreshAllViews);
+}
+function refreshAllViews(){
+  renderToday(); renderAll(); renderStats(); renderPayout();
+}
+function actualizarManual(){
+  var btn=document.getElementById('refreshBtn');
+  if(btn){btn.disabled=true; btn.innerHTML='<i class="fas fa-rotate fa-spin"></i>';}
+  syncBookingsFromSheet().then(function(){
+    refreshAllViews();
+    toast('Servicios actualizados.');
+    if(btn){btn.disabled=false; btn.innerHTML='<i class="fas fa-rotate"></i>';}
   });
 }
 
@@ -798,6 +921,70 @@ function renderRestDay(){
     document.getElementById('restDayText').textContent=DIAS_SEMANA_LBL[sched[empKey]]||sched[empKey];
     document.getElementById('restDayBanner').style.display='flex';
   }).catch(function(){});
+}
+
+// ── COBRO POR CICLO (cada 6 servicios completados) ──
+var WA_PAGOS='573505457420';
+function unpaidCompleted(){
+  return myBookings().filter(function(b){
+    return (b.status||'').toLowerCase().includes('complet') && !b.paidOut;
+  }).sort(function(a,b){return (a.date||'').localeCompare(b.date||'')||String(a.id).localeCompare(String(b.id))});
+}
+function renderPayout(){
+  var pend=unpaidCompleted();
+  var enCiclo=Math.min(pend.length,6);
+  var dots='';
+  for(var i=1;i<=6;i++){
+    dots+='<div class="payout-dot'+(i<=enCiclo?' filled':'')+'">'+(i<=enCiclo?'<i class="fas fa-check"></i>':i)+'</div>';
+  }
+  var totalPend=pend.reduce(function(s,b){return s+(EMP_PAY[b.service]||0)},0);
+  var ciclosListos=Math.floor(pend.length/6);
+  var html='<div class="payout-dots">'+dots+'</div>'
+    +'<div class="payout-progress-txt">Cada <strong>6 servicios completados</strong> puedes cobrar. Llevas <strong>'+pend.length+'</strong> sin cobrar.</div>';
+  if(pend.length>0){
+    html+='<div class="payout-total">$'+totalPend.toLocaleString('es-CO')+'</div>';
+  }
+  if(ciclosListos>1){
+    html+='<div class="payout-extra"><i class="fas fa-circle-exclamation"></i> Tienes '+ciclosListos+' ciclos de 6 listos — puedes cobrar varias veces seguidas.</div>';
+  }
+  var puedeCobrar=pend.length>=6;
+  html+='<button class="btn-cobrar '+(puedeCobrar?'enabled':'disabled')+'" '+(puedeCobrar?'onclick="cobrarCiclo()"':'disabled')+'><i class="fab fa-whatsapp"></i> '+(puedeCobrar?'Cobrar mis 6 servicios':'Aún no completas 6 servicios')+'</button>';
+  document.getElementById('payoutCard').innerHTML=html;
+}
+function cobrarCiclo(){
+  var pend=unpaidCompleted();
+  if(pend.length<6){toast('Todavía no completas 6 servicios sin cobrar.','error');return;}
+  if(!emp.cuenta || !emp.banco){
+    toast('Primero pon tu cuenta bancaria en Mi Perfil.','error');
+    goTab('perfil');
+    return;
+  }
+  var lote=pend.slice(0,6);
+  var total=lote.reduce(function(s,b){return s+(EMP_PAY[b.service]||0)},0);
+  var detalle=lote.map(function(b,i){return (i+1)+'. '+fmtDate(b.date)+' — '+(SVC_LBL[b.service]||b.service)+' — $'+(EMP_PAY[b.service]||0).toLocaleString('es-CO');}).join('\n');
+  var msg='💰 *SOLICITUD DE COBRO — QUE-K Aseo*\n\n'
+    +'👷 *Empleada:* '+emp.fullName+'\n'
+    +'🏦 *Banco:* '+emp.banco+'\n'
+    +'💳 *Tipo de cuenta:* '+(emp.tipoCuenta||'—')+'\n'
+    +'🔢 *Número de cuenta:* '+emp.cuenta+'\n'
+    +'⚠️ *La cuenta está a nombre de:* '+emp.fullName+'\n\n'
+    +'*Servicios que cubre este cobro (6):*\n'+detalle+'\n\n'
+    +'💵 *Total a pagar:* $'+total.toLocaleString('es-CO')+'\n\n'
+    +'Por favor confirmar el pago. ¡Gracias! 💚';
+
+  window.open('https://wa.me/'+WA_PAGOS+'?text='+encodeURIComponent(msg),'_blank');
+
+  var ids=lote.map(function(b){return b.id});
+  var bks=getBookings();
+  bks.forEach(function(b){ if(ids.indexOf(b.id)!==-1) b.paidOut=true; });
+  saveBookings(bks);
+  if(SHEET_WEBHOOK_URL){
+    try{
+      fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'marcarPagoCobrado', ids:ids.join(',')})}).catch(function(){});
+    }catch(e){}
+  }
+  renderPayout();
+  toast('Solicitud de cobro enviada. ¡Ya se descontó del contador!');
 }
 
 // ── Cerrar modal al tocar fuera ──
