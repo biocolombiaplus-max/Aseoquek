@@ -709,6 +709,12 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
 <div class="modal-bg" id="addBkModal">
   <div class="modal-box">
     <h3><i class="fas fa-plus-circle" style="color:var(--g);margin-right:8px"></i>Nueva Reserva</h3>
+    <div class="fg" style="position:relative">
+      <label><i class="fas fa-magnifying-glass" style="margin-right:5px;color:var(--g)"></i>¿Cliente ya registrado? Búscalo aquí</label>
+      <input type="text" id="m_search_client" class="inp" placeholder="Escribe el nombre o teléfono..." oninput="buscarClienteExistente()" onblur="setTimeout(function(){document.getElementById('m_search_results').style.display='none'},250)" autocomplete="off">
+      <div id="m_search_results" style="display:none;position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid var(--bdr);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.15);max-height:220px;overflow-y:auto;z-index:20;margin-top:4px"></div>
+    </div>
+    <div style="border-top:1px dashed var(--bdr);margin:14px 0 12px"></div>
     <div class="cfg-row">
       <div class="fg"><label>Nombre cliente <span style="color:var(--acc)">*</span></label><input type="text" id="m_name" class="inp" placeholder="Nombre completo"></div>
       <div class="fg"><label>Teléfono <span style="color:var(--acc)">*</span></label><input type="tel" id="m_phone" class="inp" placeholder="313 000 0000"></div>
@@ -1544,7 +1550,49 @@ function exportCSV(){
 // ── Add Booking Modal ─────────────────────────────────────────
 function openAddBooking(){
   document.getElementById('addBkModal').classList.add('open');
+  document.getElementById('m_search_client').value='';
+  document.getElementById('m_search_results').style.display='none';
   updateModalPay();
+}
+function buscarClienteExistente(){
+  var q=document.getElementById('m_search_client').value.trim().toLowerCase();
+  var box=document.getElementById('m_search_results');
+  if(q.length<2){ box.style.display='none'; box.innerHTML=''; return; }
+  var bks=getBookings().slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'')});
+  var seen={}; var matches=[];
+  bks.forEach(function(b){
+    var hay=(b.name||'').toLowerCase()+' '+(b.phone||'');
+    if(hay.indexOf(q)===-1) return;
+    var key=(b.phone||'')+'|'+(b.name||'').toLowerCase();
+    if(seen[key]) return;
+    seen[key]=true;
+    matches.push(b);
+  });
+  window.__mSearchMatches=matches.slice(0,8);
+  if(!window.__mSearchMatches.length){
+    box.innerHTML='<div style="padding:12px;color:var(--lt);font-size:13px">Sin coincidencias — se creará como cliente nuevo.</div>';
+    box.style.display='block';
+    return;
+  }
+  box.innerHTML=window.__mSearchMatches.map(function(b,i){
+    return '<div onmousedown="elegirClienteExistente('+i+')" style="padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--bg)" onmouseover="this.style.background=\'var(--bg)\'" onmouseout="this.style.background=\'\'">'
+      +'<div style="font-weight:600;color:var(--navy);font-size:13px">'+b.name+'</div>'
+      +'<div style="font-size:12px;color:var(--lt)">'+(b.phone||'')+(b.neighborhood?' · '+b.neighborhood:'')+'</div>'
+      +'</div>';
+  }).join('');
+  box.style.display='block';
+}
+function elegirClienteExistente(i){
+  var b=(window.__mSearchMatches||[])[i];
+  if(!b) return;
+  document.getElementById('m_name').value=b.name||'';
+  document.getElementById('m_phone').value=b.phone||'';
+  document.getElementById('m_email').value=b.email||'';
+  document.getElementById('m_addr').value=b.address||'';
+  document.getElementById('m_barrio').value=b.neighborhood||'';
+  document.getElementById('m_search_client').value=b.name+' ✓ datos cargados';
+  document.getElementById('m_search_results').style.display='none';
+  toast('Datos de '+b.name+' cargados. Solo falta el servicio, fecha y turno.');
 }
 function updateModalPay(){
   var svc=document.getElementById('m_svc').value;
