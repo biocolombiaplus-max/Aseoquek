@@ -706,48 +706,6 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <div class="team-grid">
       <div class="team-card">
         <div class="team-photo">
-          <img id="teamPhoto-maria" src="https://images.unsplash.com/photo-1589156229687-496a31ad1d1f?w=500&q=80" alt="María Suárez">
-          <span class="team-verified"><i class="fas fa-shield-halved"></i> Verificada</span>
-        </div>
-        <div class="team-info">
-          <span class="team-badge"><i class="fas fa-heart"></i> Madre cabeza de hogar</span>
-          <h3 id="teamName-maria">María Fernanda Suárez</h3>
-          <div class="role" id="teamRole-maria">Especialista en Limpieza Profunda</div>
-          <p>5 años de experiencia. Especializada en mudanzas y limpieza post-obra. Puntual, detallista y de confianza.</p>
-          <div class="team-stats">
-            <div class="team-stat"><strong>142</strong><span>servicios</span></div>
-            <div class="team-stat"><strong>4.98★</strong><span>calificación</span></div>
-          </div>
-          <div class="team-social">
-            <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="https://wa.me/573126014769" title="WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a>
-            <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
-          </div>
-        </div>
-      </div>
-      <div class="team-card">
-        <div class="team-photo">
-          <img id="teamPhoto-luzdary" src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=500&q=80" alt="Luzdary Contreras">
-          <span class="team-verified"><i class="fas fa-shield-halved"></i> Verificada</span>
-        </div>
-        <div class="team-info">
-          <span class="team-badge"><i class="fas fa-heart"></i> Madre cabeza de hogar</span>
-          <h3 id="teamName-luzdary">Luzdary Contreras</h3>
-          <div class="role" id="teamRole-luzdary">Especialista AirBnB & Hogar</div>
-          <p>4 años dedicada al aseo profesional. Experta en espacios Airbnb y viviendas familiares. Amable y responsable.</p>
-          <div class="team-stats">
-            <div class="team-stat"><strong>118</strong><span>servicios</span></div>
-            <div class="team-stat"><strong>4.97★</strong><span>calificación</span></div>
-          </div>
-          <div class="team-social">
-            <a href="#" title="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="https://wa.me/573126014769" title="WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a>
-            <a href="#" title="Facebook"><i class="fab fa-facebook"></i></a>
-          </div>
-        </div>
-      </div>
-      <div class="team-card">
-        <div class="team-photo">
           <img id="teamPhoto-jeknaly" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMwMEM4OTYiLz4KPHRleHQgeD0iMTAwIiB5PSIxMjIiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9Ijc2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5KUjwvdGV4dD4KPC9zdmc+Cg==" alt="Jeknaly Rey">
           <span class="team-verified"><i class="fas fa-shield-halved"></i> Verificada</span>
         </div>
@@ -1549,7 +1507,7 @@ function hideSocialProof(){
 }
 
 // ── FOTOS/DATOS DE EMPLEADAS DESDE FIREBASE (las aprueba el admin) ──
-var TEAM_BASE_IDS = ['maria','luzdary','jeknaly'];
+var TEAM_BASE_IDS = ['jeknaly'];
 function teamAvatarDataURI(name){
   var initials = (name||'').trim().split(/\s+/).slice(0,2).map(function(w){return w[0]||''}).join('').toUpperCase() || 'QK';
   var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#00C896"/><text x="100" y="122" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="700" fill="#ffffff" text-anchor="middle">' + initials + '</text></svg>';
