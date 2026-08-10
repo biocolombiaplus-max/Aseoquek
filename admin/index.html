@@ -2,6 +2,17 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<script>
+var APP_VERSION = '20260730a';
+(function(){
+  fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
+    var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
+    if(m && m[1] && m[1]!==APP_VERSION){
+      location.reload();
+    }
+  }).catch(function(){});
+})();
+</script>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
@@ -334,7 +345,9 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     saveEmpleada: (id, data) => setDoc(doc(db, 'empleadas', id), data, { merge: true }),
     uploadPhoto: (path, file) => compressPhotoSafe(file),
     getHorario: (weekKey) => getDoc(doc(db, 'horarios', weekKey)).then(s => s.exists() ? s.data() : null),
-    saveHorario: (weekKey, data) => setDoc(doc(db, 'horarios', weekKey), data, { merge: true })
+    saveHorario: (weekKey, data) => setDoc(doc(db, 'horarios', weekKey), data, { merge: true }),
+    getAllConductores: () => getDocs(collection(db, 'conductores')).then(snap => { const out = {}; snap.forEach(d => out[d.id] = d.data()); return out; }),
+    saveConductor: (id, data) => setDoc(doc(db, 'conductores', id), data, { merge: true })
   };
 } else {
   window.QuekFB = {
@@ -344,7 +357,9 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     saveEmpleada: async () => { throw new Error('Firebase no configurado todavía'); },
     uploadPhoto: async () => { throw new Error('Firebase no configurado todavía'); },
     getHorario: async () => null,
-    saveHorario: async () => { throw new Error('Firebase no configurado todavía'); }
+    saveHorario: async () => { throw new Error('Firebase no configurado todavía'); },
+    getAllConductores: async () => ({}),
+    saveConductor: async () => { throw new Error('Firebase no configurado todavía'); }
   };
 }
 </script>
@@ -390,6 +405,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="sb-item" onclick="showTab('empleadas')"><i class="fas fa-users"></i> Empleadas</div>
       <div class="sb-item" onclick="showTab('contabilidad')"><i class="fas fa-chart-bar"></i> Contabilidad</div>
       <div class="sb-item" onclick="showTab('gastos')"><i class="fas fa-receipt"></i> Gastos</div>
+      <div class="sb-item" onclick="showTab('transporte')"><i class="fas fa-truck"></i> Transporte</div>
       <div class="sb-section">Sistema</div>
       <div class="sb-item" onclick="showTab('config')"><i class="fas fa-cog"></i> Configuración</div>
       <div class="sb-item" onclick="window.open('../index.html','_blank')"><i class="fas fa-globe"></i> Ver Sitio Web</div>
@@ -590,13 +606,17 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           </div>
           <div class="fg">
             <label>Categoría</label>
-            <select id="expCat" class="inp">
+            <select id="expCat" class="inp" onchange="toggleExpConductor()">
               <option value="Insumos">Insumos de limpieza</option>
               <option value="Transporte">Transporte</option>
               <option value="Publicidad">Publicidad</option>
               <option value="Herramientas">Herramientas/Equipos</option>
               <option value="Otro">Otro</option>
             </select>
+          </div>
+          <div class="fg" id="expConductorWrap" style="display:none">
+            <label>Conductor</label>
+            <select id="expConductor" class="inp"></select>
           </div>
           <div class="fg">
             <label>Descripción</label>
@@ -629,6 +649,26 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
         </table>
         </div>
         <div class="cards-mobile" id="expCardsMobile"></div>
+      </div>
+    </div>
+
+    <!-- ── TRANSPORTE ─────────────────────────────────────────── -->
+    <div class="tab-content" id="tab-transporte">
+      <div class="sec-hd"><h2>Transporte</h2><button class="btn-g" onclick="openAddConductor()"><i class="fas fa-user-plus"></i>Agregar conductor</button></div>
+      <div class="emp-grid" id="conductorGrid"></div>
+
+      <div style="background:#fff;border-radius:var(--r);box-shadow:var(--sh);padding:22px;margin-top:20px">
+        <div class="sec-hd" style="margin-bottom:14px">
+          <h3 style="font-size:15px;font-weight:700;color:var(--navy)"><i class="fas fa-money-bill-wave" style="color:var(--g);margin-right:8px"></i>Pagos de transporte</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="transFilterConductor" onchange="renderTransportePagos()" class="inp" style="width:auto">
+              <option value="">Todos los conductores</option>
+            </select>
+            <input type="month" id="transFilterMonth" onchange="renderTransportePagos()" class="inp" style="width:auto">
+          </div>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px" id="transTotal">Total: $0</div>
+        <div class="cards-mobile" id="transCards" style="display:block"></div>
       </div>
     </div>
 
@@ -762,6 +802,24 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
   </div>
 </div>
 
+<!-- AGREGAR/EDITAR CONDUCTOR -->
+<div class="modal-bg" id="condModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-id-card" style="color:var(--g);margin-right:8px"></i><span id="condModalTitle">Agregar conductor</span></h3>
+    <input type="hidden" id="cond_id">
+    <div class="fg"><label>Nombre completo <span style="color:var(--acc)">*</span></label><input type="text" id="cond_name" class="inp" placeholder="Nombre y apellido"></div>
+    <div class="cfg-row">
+      <div class="fg"><label>Teléfono</label><input type="text" id="cond_phone" class="inp" placeholder="313 000 0000"></div>
+      <div class="fg"><label>Placa del vehículo</label><input type="text" id="cond_placa" class="inp" placeholder="Opcional"></div>
+    </div>
+    <div class="fg"><label>Notas</label><textarea id="cond_notas" class="inp" rows="2" placeholder="Opcional"></textarea></div>
+    <div class="modal-btns">
+      <button class="btn-outline-g" onclick="closeModal('condModal')">Cancelar</button>
+      <button class="btn-g" onclick="saveConductor()"><i class="fas fa-save"></i>Guardar conductor</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"><i class="fas fa-check-circle"></i><span id="toastMsg"></span></div>
 
@@ -788,6 +846,9 @@ var EMPLOYEES=[
   {id:'jeknaly',name:'Jeknaly Rey',role:'Especialista en Aseo General',img:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMwMEM4OTYiLz4KPHRleHQgeD0iMTAwIiB5PSIxMjIiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9Ijc2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5KUjwvdGV4dD4KPC9zdmc+Cg==',experience:'Nueva en el equipo QUE-K',tags:'Hogares, Aseo General',phone:'',email:''}
 ];
 var empleadasLoadedFromFB=false;
+var CONDUCTORES=[
+  {id:'jose-caceres',name:'José Cáceres',phone:'',placa:'',notas:''}
+];
 var MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 // ── Data helpers ──────────────────────────────────────────────
@@ -1150,7 +1211,7 @@ function closeSidebar(){
 }
 
 // ── Tabs ──────────────────────────────────────────────────────
-var TAB_TITLES={dashboard:'Dashboard',reservas:'Reservas',empleadas:'Empleadas',contabilidad:'Contabilidad',gastos:'Gastos',config:'Configuración'};
+var TAB_TITLES={dashboard:'Dashboard',reservas:'Reservas',empleadas:'Empleadas',contabilidad:'Contabilidad',gastos:'Gastos',transporte:'Transporte',config:'Configuración'};
 function showTab(t){
   document.querySelectorAll('.tab-content').forEach(function(el){el.classList.remove('active')});
   document.querySelectorAll('.sb-item').forEach(function(el){el.classList.remove('active')});
@@ -1165,6 +1226,7 @@ function showTab(t){
   if(t==='empleadas')renderEmployees();
   if(t==='contabilidad')renderAccounting();
   if(t==='gastos')renderExpenses();
+  if(t==='transporte')renderTransporte();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 
@@ -1899,9 +1961,10 @@ function addExpense(){
   var cat=document.getElementById('expCat').value;
   var desc=document.getElementById('expDesc').value.trim();
   var amt=document.getElementById('expAmt').value;
+  var driverName=cat==='Transporte' ? document.getElementById('expConductor').value : '';
   if(!date||!desc||!amt){toast('Completa todos los campos del gasto','error');return}
   var exps=getExpenses();
-  exps.push({id:Date.now(),date:date,category:cat,description:desc,amount:Number(amt)});
+  exps.push({id:Date.now(),date:date,category:cat,description:desc,amount:Number(amt),driverName:driverName});
   setExpenses(exps);
   document.getElementById('expDesc').value='';
   document.getElementById('expAmt').value='';
@@ -1911,6 +1974,155 @@ function deleteExp(id){
   if(!confirm('¿Eliminar este gasto?'))return;
   setExpenses(getExpenses().filter(function(e){return String(e.id)!==String(id)}));
   renderExpenses();toast('Gasto eliminado','error');
+}
+function toggleExpConductor(){
+  var cat=document.getElementById('expCat').value;
+  var wrap=document.getElementById('expConductorWrap');
+  wrap.style.display = cat==='Transporte' ? 'block' : 'none';
+  if(cat==='Transporte'){
+    document.getElementById('expConductor').innerHTML=CONDUCTORES.map(function(c){return'<option value="'+c.name+'">'+c.name+'</option>'}).join('');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TRANSPORTE (conductores)
+// ═══════════════════════════════════════════════════════════════
+var conductoresLoadedFromFB=false;
+function renderTransporte(){
+  if(!conductoresLoadedFromFB && window.QuekFB && window.QuekFB.configured){
+    conductoresLoadedFromFB=true;
+    window.QuekFB.getAllConductores().then(function(data){
+      CONDUCTORES.forEach(function(c){
+        var d=data[c.id];
+        if(!d) return;
+        if(d.name) c.name=d.name;
+        if(d.phone) c.phone=d.phone;
+        if(d.placa) c.placa=d.placa;
+        if(d.notas) c.notas=d.notas;
+      });
+      CONDUCTORES=CONDUCTORES.filter(function(c){return data[c.id]?data[c.id].activo!==false:true});
+      Object.keys(data).forEach(function(id){
+        var d=data[id];
+        if(!d || d.activo===false) return;
+        if(CONDUCTORES.some(function(c){return c.id===id})) return;
+        CONDUCTORES.push({id:id,name:d.name||id,phone:d.phone||'',placa:d.placa||'',notas:d.notas||''});
+      });
+      renderConductorCards();
+      renderTransportePagos();
+    }).catch(function(){renderConductorCards();renderTransportePagos();});
+  } else {
+    renderConductorCards();
+    renderTransportePagos();
+  }
+}
+function renderConductorCards(){
+  var exps=getExpenses().filter(function(e){return e.category==='Transporte'});
+  var now=new Date();
+  var thisMonth=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('conductorGrid').innerHTML=CONDUCTORES.map(function(c){
+    var mine=exps.filter(function(e){return (e.driverName||'')===c.name});
+    var totalHist=mine.reduce(function(s,e){return s+Number(e.amount||0)},0);
+    var totalMes=mine.filter(function(e){return (e.date||'').startsWith(thisMonth)}).reduce(function(s,e){return s+Number(e.amount||0)},0);
+    return'<div class="emp-card">'+
+      '<div class="emp-top"><div class="emp-ava" style="display:flex;align-items:center;justify-content:center;background:var(--navy);color:#fff;font-weight:700;font-size:16px"><i class="fas fa-truck"></i></div>'+
+      '<div style="flex:1"><div class="emp-nm">'+c.name+'</div><div class="emp-role">'+(c.placa?'Placa: '+c.placa:'Conductor')+'</div></div>'+
+      '<button class="btn-logout" title="Editar" onclick="openEditConductor(\''+c.id+'\')" style="color:rgba(255,255,255,.7)"><i class="fas fa-pen"></i></button>'+
+      '<button class="btn-logout" title="Ya no presta el servicio" onclick="eliminarConductor(\''+c.id+'\')" style="color:rgba(255,255,255,.7)"><i class="fas fa-user-slash"></i></button></div>'+
+      '<div class="emp-body">'+
+      '<div class="emp-stats">'+
+      '<div class="emp-stat"><span class="v" style="font-size:14px">'+fmt(totalMes)+'</span><span class="l">Pagado este mes</span></div>'+
+      '<div class="emp-stat"><span class="v" style="font-size:14px">'+fmt(totalHist)+'</span><span class="l">Total histórico</span></div>'+
+      '</div>'+
+      (c.phone?'<div class="emp-pay-info"><div class="pay-row"><span class="svc"><i class="fas fa-phone" style="width:14px"></i> Teléfono</span><span class="amount" style="color:var(--navy)">'+c.phone+'</span></div></div>':'')+
+      (c.phone?'<a href="https://wa.me/57'+c.phone.replace(/\D/g,'')+'" target="_blank" class="btn-g" style="justify-content:center;font-size:12px;margin-top:10px"><i class="fab fa-whatsapp"></i>WhatsApp</a>':'')+
+      '</div></div>';
+  }).join('') || '<div style="text-align:center;color:var(--lt);padding:20px;grid-column:1/-1">Aún no hay conductores registrados.</div>';
+
+  var sel=document.getElementById('transFilterConductor');
+  var cur=sel.value;
+  sel.innerHTML='<option value="">Todos los conductores</option>'+CONDUCTORES.map(function(c){return'<option value="'+c.name+'">'+c.name+'</option>'}).join('');
+  sel.value=cur;
+}
+function renderTransportePagos(){
+  var fCond=document.getElementById('transFilterConductor').value;
+  var fMonth=document.getElementById('transFilterMonth').value;
+  var exps=getExpenses().filter(function(e){
+    if(e.category!=='Transporte') return false;
+    if(fCond && (e.driverName||'')!==fCond) return false;
+    if(fMonth && !(e.date||'').startsWith(fMonth)) return false;
+    return true;
+  }).sort(function(a,b){return (b.date||'').localeCompare(a.date||'')});
+  var total=exps.reduce(function(s,e){return s+Number(e.amount||0)},0);
+  document.getElementById('transTotal').textContent='Total: '+fmt(total);
+  var el=document.getElementById('transCards');
+  if(!exps.length){
+    el.innerHTML='<div style="text-align:center;color:var(--lt);padding:20px"><i class="fas fa-truck" style="font-size:24px;opacity:.3;display:block;margin-bottom:8px"></i>No hay pagos de transporte con esos filtros</div>';
+    return;
+  }
+  el.innerHTML=exps.map(function(e){
+    return'<div class="bk-card-m" style="border-left-color:var(--navy)">'+
+      '<div class="bkm-top"><span style="font-weight:700;color:var(--navy)">'+(e.driverName||'Sin conductor')+'</span><strong style="color:var(--red)">'+fmt(e.amount)+'</strong></div>'+
+      '<div class="bkm-row"><i class="fas fa-calendar-day"></i>'+fmtDate(e.date)+'</div>'+
+      '<div class="bkm-row"><i class="fas fa-note-sticky"></i><span>'+e.description+'</span></div>'+
+      '<div class="bkm-actions"><button class="btn-red btn-sm" onclick="deleteExp(\''+e.id+'\')"><i class="fas fa-trash"></i> Eliminar</button></div>'+
+      '</div>';
+  }).join('');
+}
+function openAddConductor(){
+  document.getElementById('condModalTitle').textContent='Agregar conductor';
+  document.getElementById('cond_id').value='';
+  document.getElementById('cond_name').value='';
+  document.getElementById('cond_phone').value='';
+  document.getElementById('cond_placa').value='';
+  document.getElementById('cond_notas').value='';
+  document.getElementById('condModal').classList.add('open');
+}
+function openEditConductor(id){
+  var c=CONDUCTORES.find(function(x){return x.id===id});
+  if(!c) return;
+  document.getElementById('condModalTitle').textContent='Editar conductor';
+  document.getElementById('cond_id').value=c.id;
+  document.getElementById('cond_name').value=c.name;
+  document.getElementById('cond_phone').value=c.phone||'';
+  document.getElementById('cond_placa').value=c.placa||'';
+  document.getElementById('cond_notas').value=c.notas||'';
+  document.getElementById('condModal').classList.add('open');
+}
+function saveConductor(){
+  var id=document.getElementById('cond_id').value;
+  var name=document.getElementById('cond_name').value.trim();
+  var phone=document.getElementById('cond_phone').value.trim();
+  var placa=document.getElementById('cond_placa').value.trim();
+  var notas=document.getElementById('cond_notas').value.trim();
+  if(!name){toast('El nombre es obligatorio.','error');return}
+  if(!id) id=slugify(name);
+  var data={name:name,phone:phone,placa:placa,notas:notas,activo:true};
+  var apply=function(){
+    var existing=CONDUCTORES.find(function(c){return c.id===id});
+    if(existing){ Object.assign(existing,data); }
+    else{ CONDUCTORES.push(Object.assign({id:id},data)); }
+    closeModal('condModal');
+    renderConductorCards();
+    renderTransportePagos();
+    toast(name+' guardado correctamente.');
+  };
+  if(window.QuekFB && window.QuekFB.configured){
+    window.QuekFB.saveConductor(id,data).then(apply).catch(function(err){toast('No se pudo guardar: '+err.message,'error')});
+  } else {
+    apply();
+  }
+}
+function eliminarConductor(id){
+  var c=CONDUCTORES.find(function(x){return x.id===id});
+  if(!c) return;
+  if(!confirm('¿'+c.name+' ya no presta el servicio de transporte?\n\nSe le quitará de la lista de conductores activos. El historial de pagos ya hechos se conserva.')) return;
+  if(window.QuekFB && window.QuekFB.configured){
+    window.QuekFB.saveConductor(id,{activo:false}).catch(function(){});
+  }
+  CONDUCTORES=CONDUCTORES.filter(function(x){return x.id!==id});
+  renderConductorCards();
+  renderTransportePagos();
+  toast(c.name+' fue eliminado de la lista.');
 }
 
 // ═══════════════════════════════════════════════════════════════
