@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260812b';
+var APP_VERSION = '20260812c';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -1489,7 +1489,7 @@ function assignEmp(id,emp){
       try{
         fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({
           accion:'notificarEmpleada', email:empObj.email, empleada:empObj.name,
-          nombre:b.name, contacto:b.phone, detalle:SVC_LABEL[b.service],
+          nombre:b.name, detalle:SVC_LABEL[b.service],
           fecha:b.date, turno:turnoLabel(b.turno), direccion:b.address, barrio:b.neighborhood, notas:b.notes||''
         })}).catch(function(){});
       }catch(e){}
@@ -1543,7 +1543,7 @@ function confirmarReserva(id){
 
   fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({
     accion:'notificarEmpleada', email:emp.email, empleada:emp.name,
-    nombre:b.name, contacto:b.phone, detalle:SVC_LABEL[b.service],
+    nombre:b.name, detalle:SVC_LABEL[b.service],
     fecha:b.date, turno:turnoLabel(b.turno), direccion:b.address, barrio:b.neighborhood, notas:b.notes||''
   })}).catch(function(){});
   toast('Reserva confirmada. Se le avisó por correo a '+emp.name+'.');
@@ -1556,7 +1556,7 @@ function notifyEmployeeWA(id){
   if(!b.assignedEmployee){ toast('Primero asígnale una empleada a esta reserva.','error'); return; }
   var emp=EMPLOYEES.find(function(x){return x.name===b.assignedEmployee});
   if(!emp || !emp.phone){ toast('Esa empleada no tiene teléfono registrado.','error'); return; }
-  var msg=encodeURIComponent('🧹 *Nuevo servicio — QUE-K*\n\nHola '+emp.name+', tienes un servicio asignado:\n\n👤 *Cliente:* '+b.name+'\n📱 *Tel. cliente:* '+b.phone+'\n🧽 *Servicio:* '+SVC_LABEL[b.service]+'\n📅 *Fecha:* '+fmtDate(b.date)+'\n⏰ *Turno:* '+turnoLabel(b.turno)+'\n📍 *Dirección:* '+b.address+', '+b.neighborhood+(b.notes?'\n📝 *Notas:* '+b.notes:'')+'\n\nRecuerda llegar 30 minutos antes. ¡Gracias! 💚');
+  var msg=encodeURIComponent('🧹 *Nuevo servicio — QUE-K*\n\nHola '+emp.name+', tienes un servicio asignado:\n\n👤 *Cliente:* '+b.name+'\n📋 *Servicio:* '+SVC_LABEL[b.service]+'\n📅 *Fecha:* '+fmtDate(b.date)+'\n🕐 *Turno:* '+turnoLabel(b.turno)+'\n📍 *Dirección:* '+b.address+', '+b.neighborhood+(b.notes?'\n📝 *Notas:* '+b.notes:'')+'\n\nRecuerda llegar 30 minutos antes. ¡Gracias! 💚');
   window.open('https://wa.me/57'+String(emp.phone||'').replace(/\D/g,'').replace(/^0/,'')+'?text='+msg,'_blank');
 }
 function exportCSV(){
@@ -1670,7 +1670,7 @@ function saveNewBooking(){
         if(empObj && empObj.email){
           return fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({
             accion:'notificarEmpleada', email:empObj.email, empleada:empObj.name,
-            nombre:name, contacto:phone, detalle:SVC_LABEL[svc],
+            nombre:name, detalle:SVC_LABEL[svc],
             fecha:date, turno:turnoLabel(turno), direccion:addr, barrio:barrio, notas:notes||''
           })});
         }
