@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260812a';
+var APP_VERSION = '20260812b';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -108,6 +108,9 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--blue);ove
 .bk-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;gap:6px;flex-wrap:wrap}
 .bk-date{font-size:.76rem;font-weight:600;color:var(--blue)}
 .badge-hoy{background:var(--green);color:#fff;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px}
+.badge-nuevo{background:#ff6b35;color:#fff;font-size:.68rem;font-weight:700;padding:3px 9px;border-radius:20px;animation:nuevoPulse 1.4s ease-in-out infinite}
+.bk-card.nuevo-card{border:2px solid #ff6b35;box-shadow:0 0 0 4px rgba(255,107,53,.15)}
+@keyframes nuevoPulse{0%,100%{opacity:1}50%{opacity:.55}}
 .bk-hora{font-size:1.5rem;font-weight:800;color:var(--blue);margin-bottom:5px}
 .bk-hora small{font-size:.8rem;font-weight:500;color:var(--gray);margin-left:5px}
 .bk-client{font-size:.9rem;font-weight:700;margin-bottom:3px}
@@ -157,6 +160,7 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--blue);ove
 #toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--blue-d);color:#fff;padding:12px 20px;border-radius:50px;font-size:.82rem;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3);z-index:1100;opacity:0;pointer-events:none;transition:.25s;max-width:90%;text-align:center}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 #toast.error{background:var(--red)}
+#toast.success{background:var(--green-d,var(--green))}
 
 /* ── STATS ── */
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
@@ -513,6 +517,47 @@ function syncBookingsFromSheet(){
     }).catch(function(){});
 }
 
+// ── Detecta servicios recién asignados (comparado con la última vez que los vio en este dispositivo) ──
+window.__newAssignedIds=[];
+function checkForNewAssignments(){
+  if(!emp || !empKey) return;
+  var key='quek_seen_ids_'+empKey;
+  var seen=null;
+  try{ seen=JSON.parse(localStorage.getItem(key)); }catch(e){}
+  var current=myBookings().filter(function(b){return (b.status||'').toLowerCase().indexOf('cancel')===-1}).map(function(b){return String(b.id)});
+  if(!seen){
+    // primera vez en este dispositivo: no notifica nada retroactivo, solo establece la base
+    localStorage.setItem(key, JSON.stringify(current));
+    window.__newAssignedIds=[];
+    return;
+  }
+  var newIds=current.filter(function(id){return seen.indexOf(id)===-1});
+  window.__newAssignedIds=newIds;
+  localStorage.setItem(key, JSON.stringify(current));
+  if(newIds.length) notifyNewServices(newIds);
+}
+function notifyNewServices(ids){
+  var bks=getBookings();
+  var items=ids.map(function(id){return bks.find(function(b){return String(b.id)===id})}).filter(Boolean);
+  if(!items.length) return;
+  var msg = items.length===1
+    ? '🎉 Nuevo servicio asignado: '+(SVC_LBL[items[0].service]||items[0].service)+' — '+fmtDate(items[0].date)+' '+(TURNO_LBL[items[0].turno]||'')
+    : '🎉 Tienes '+items.length+' servicios nuevos asignados';
+  toast(msg,'success');
+  if(navigator.vibrate){ try{ navigator.vibrate([200,100,200]); }catch(e){} }
+  if('Notification' in window && Notification.permission==='granted'){
+    try{
+      var n=new Notification('QUE-K — Nuevo servicio 🧹', {body: msg.replace('🎉 ',''), icon:'../assets/icon-192.png'});
+      n.onclick=function(){ window.focus(); n.close(); };
+    }catch(e){}
+  }
+}
+function askNotificationPermission(){
+  if('Notification' in window && Notification.permission==='default'){
+    try{ Notification.requestPermission(); }catch(e){}
+  }
+}
+
 function myBookings(){
   var all=getBookings();
   var name=emp.fullName.toLowerCase().trim();
@@ -634,7 +679,8 @@ function cardHTML(b, showTerminar){
   var isToday=b.date===today;
   var isComp=(b.status||'').toLowerCase().includes('complet');
   var isCan=(b.status||'').toLowerCase().includes('cancel');
-  var cls='bk-card'+(isToday?' hoy':'')+(isComp?' completada-card':'');
+  var isNuevo=(window.__newAssignedIds||[]).indexOf(String(b.id))!==-1;
+  var cls='bk-card'+(isToday?' hoy':'')+(isComp?' completada-card':'')+(isNuevo?' nuevo-card':'');
   var addr=(b.address||'')+(b.neighborhood?' — '+b.neighborhood:'');
   var hora=TURNO_LBL[b.turno]||b.turno||'—';
   var svcLbl=SVC_LBL[b.service]||b.service||'—';
@@ -648,7 +694,7 @@ function cardHTML(b, showTerminar){
   }
 
   return '<div class="'+cls+'">'
-    +'<div class="bk-top"><span class="bk-date">'+fmtDate(b.date)+'</span>'+(isToday?'<span class="badge-hoy">HOY</span>':'')+'</div>'
+    +'<div class="bk-top"><span class="bk-date">'+fmtDate(b.date)+'</span><span style="display:flex;gap:5px">'+(isNuevo?'<span class="badge-nuevo"><i class="fas fa-bolt"></i> NUEVO</span>':'')+(isToday?'<span class="badge-hoy">HOY</span>':'')+'</span></div>'
     +'<div class="bk-hora">'+hora+'<small>inicio</small></div>'
     +'<div class="bk-client"><i class="fas fa-user"></i>'+(b.name||'Sin nombre')+'</div>'
     +'<div class="bk-svc"><i class="fas fa-broom"></i>'+svcLbl+(pago?' · <strong style="color:var(--green)">'+pago+'</strong> tu pago':'')+'</div>'
@@ -889,7 +935,12 @@ function showDash(){
     d.style.display='flex'; d.style.flexDirection='column';
     goTab('inicio');
   });
-  syncBookingsFromSheet().then(refreshAllViews);
+  syncBookingsFromSheet().then(function(){
+    checkForNewAssignments();
+    refreshAllViews();
+  });
+  askNotificationPermission();
+  startAutoSync();
 }
 function refreshAllViews(){
   renderToday(); renderAll(); renderStats(); renderPayout();
@@ -898,11 +949,26 @@ function actualizarManual(){
   var btn=document.getElementById('refreshBtn');
   if(btn){btn.disabled=true; btn.innerHTML='<i class="fas fa-rotate fa-spin"></i>';}
   syncBookingsFromSheet().then(function(){
+    checkForNewAssignments();
     refreshAllViews();
     toast('Servicios actualizados.');
     if(btn){btn.disabled=false; btn.innerHTML='<i class="fas fa-rotate"></i>';}
   });
 }
+// ── Auto-sync: revisa nuevos servicios solos, sin que la empleada tenga que tocar nada ──
+var __autoSyncTimer=null;
+function startAutoSync(){
+  if(__autoSyncTimer) clearInterval(__autoSyncTimer);
+  __autoSyncTimer=setInterval(function(){
+    if(!emp) return;
+    syncBookingsFromSheet().then(function(){ checkForNewAssignments(); refreshAllViews(); });
+  }, 45000);
+}
+document.addEventListener('visibilitychange', function(){
+  if(document.visibilityState==='visible' && emp){
+    syncBookingsFromSheet().then(function(){ checkForNewAssignments(); refreshAllViews(); });
+  }
+});
 
 // ── DÍA DE DESCANSO DE ESTA SEMANA (lo define el administrador) ──
 var DIAS_SEMANA_LBL={lunes:'Lunes',martes:'Martes',miercoles:'Miércoles',jueves:'Jueves',viernes:'Viernes',sabado:'Sábado',domingo:'Domingo'};
@@ -990,6 +1056,24 @@ document.getElementById('finModal').addEventListener('click',function(e){if(e.ta
     try{
       var k=JSON.parse(saved).key;
       if(EMPLOYEES[k]){empKey=k;emp=EMPLOYEES[k];showDash();return;}
+      if(window.QuekFB && window.QuekFB.configured){
+        window.QuekFB.getEmpleada(k).then(function(fb){
+          if(fb && fb.activo!==false){
+            var tagsArr=fb.tags?fb.tags.split(',').map(function(t){return t.trim()}).filter(Boolean):[];
+            empKey=k;
+            emp={password:fb.password,fullName:fb.fullName||fb.name||k,photo:fb.photoPublic||avatarDataURI(initialsOf(fb.fullName||fb.name||k)),specialty:fb.role||'',experience:fb.experience||'',phone:fb.phone||'',tags:tagsArr};
+            showDash();
+          } else {
+            sessionStorage.removeItem('quek_emp');
+            document.getElementById('loginPage').style.display='flex';
+            document.getElementById('dashPage').style.display='none';
+          }
+        }).catch(function(){
+          document.getElementById('loginPage').style.display='flex';
+          document.getElementById('dashPage').style.display='none';
+        });
+        return;
+      }
     }catch(e){}
   }
   document.getElementById('loginPage').style.display='flex';

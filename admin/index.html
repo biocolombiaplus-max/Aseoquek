@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260812a';
+var APP_VERSION = '20260812b';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -1472,6 +1472,7 @@ function assignEmp(id,emp){
   var bks=getBookings();
   var b=bks.find(function(x){return String(x.id)===String(id)});
   if(!b) return;
+  var prevEmp=b.assignedEmployee;
   b.assignedEmployee=emp;
   setBookings(bks);
   toast('Empleada asignada: '+(emp||'Sin asignar'));
@@ -1480,6 +1481,19 @@ function assignEmp(id,emp){
     try{
       fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'asignarEmpleada', id:id, empleada:emp||''})}).catch(function(){});
     }catch(e){}
+  }
+  // Avisa por correo a la empleada recién asignada (si tiene correo registrado)
+  if(emp && emp!==prevEmp && SHEET_WEBHOOK_URL){
+    var empObj=EMPLOYEES.find(function(x){return x.name===emp});
+    if(empObj && empObj.email){
+      try{
+        fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({
+          accion:'notificarEmpleada', email:empObj.email, empleada:empObj.name,
+          nombre:b.name, contacto:b.phone, detalle:SVC_LABEL[b.service],
+          fecha:b.date, turno:turnoLabel(b.turno), direccion:b.address, barrio:b.neighborhood, notas:b.notes||''
+        })}).catch(function(){});
+      }catch(e){}
+    }
   }
 }
 function changeStatus(id,status){
@@ -1649,6 +1663,16 @@ function saveNewBooking(){
         // espera a que la fila exista en el Sheet antes de marcar la empleada asignada, para evitar condición de carrera
         if(emp){
           return fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'asignarEmpleada', id:id, empleada:emp})});
+        }
+      }).then(function(){
+        if(!emp) return;
+        var empObj=EMPLOYEES.find(function(x){return x.name===emp});
+        if(empObj && empObj.email){
+          return fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({
+            accion:'notificarEmpleada', email:empObj.email, empleada:empObj.name,
+            nombre:name, contacto:phone, detalle:SVC_LABEL[svc],
+            fecha:date, turno:turnoLabel(turno), direccion:addr, barrio:barrio, notas:notes||''
+          })});
         }
       }).catch(function(){});
     }catch(e){}
