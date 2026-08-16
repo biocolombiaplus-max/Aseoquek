@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260812c';
+var APP_VERSION = '20260812d';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -770,6 +770,10 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="fg"><label>Etiquetas (separadas por coma)</label><input type="text" id="ee_tags" class="inp" placeholder="Hogares, Airbnb, Deep Cleaning"></div>
     </div>
     <div class="fg"><label>Correo de la empleada</label><input type="email" id="ee_email" class="inp" placeholder="correo@ejemplo.com"></div>
+    <div class="cfg-row" style="margin-top:8px">
+      <div class="fg"><label>Usuario para ingresar al portal</label><input type="text" id="ee_user" class="inp" readonly style="background:rgba(26,58,92,.05);color:var(--lt)"></div>
+      <div class="fg"><label>Restablecer contraseña</label><input type="text" id="ee_newpass" class="inp" placeholder="Dejar en blanco para no cambiarla"></div>
+    </div>
     <div style="background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.15);border-radius:8px;padding:12px;font-size:12px;color:var(--lt);margin-top:4px">
       <i class="fas fa-info-circle" style="color:var(--g);margin-right:5px"></i>Esta foto y estos datos se muestran en la página web pública y en el portal de la empleada. Si ella sube su propia foto desde su perfil, esa queda privada solo para ella — esta es la que ven los clientes. El teléfono y correo se usan para notificarle cuando confirmes una reserva a su nombre.
     </div>
@@ -1829,6 +1833,8 @@ function openEditEmp(id){
   document.getElementById('ee_experience').value=emp.experience||'';
   document.getElementById('ee_tags').value=emp.tags||'';
   document.getElementById('ee_email').value=emp.email||'';
+  document.getElementById('ee_user').value=id;
+  document.getElementById('ee_newpass').value='';
   document.getElementById('editEmpModal').classList.add('open');
 }
 
@@ -1872,6 +1878,8 @@ function saveEmpleadaEdit(){
     tags:document.getElementById('ee_tags').value.trim(),
     email:document.getElementById('ee_email').value.trim()
   };
+  var newPass=document.getElementById('ee_newpass').value.trim();
+  if(newPass) data.password=newPass;
 
   function applyLocally(photoUrl){
     emp.name=data.fullName; emp.phone=data.phone; emp.role=data.role;
@@ -1886,7 +1894,9 @@ function saveEmpleadaEdit(){
     // Sin Firebase: guarda solo localmente (en este navegador), pero ya funciona para el correo/WhatsApp de notificación.
     // La foto NO se guarda porque no hay dónde subirla todavía ni forma de mostrarla en la página pública.
     applyLocally();
-    if(editEmpPhotoFile){
+    if(newPass){
+      toast('La contraseña NO se pudo cambiar: falta configurar Firebase.','error');
+    }else if(editEmpPhotoFile){
       toast('Nombre/teléfono/rol guardados en este navegador, pero la FOTO no se aplicó: falta configurar Firebase. Avísame cuando tengas los datos de Firebase y la dejamos funcionando.','error');
     }else{
       toast('Datos de '+emp.name+' guardados en este navegador. Nota: estos cambios no se ven en la página pública hasta que se configure Firebase.');
@@ -1902,7 +1912,7 @@ function saveEmpleadaEdit(){
     return window.QuekFB.saveEmpleada(id, data);
   }).then(function(){
     applyLocally(data.photoPublic);
-    toast('Datos de '+emp.name+' actualizados. Ya se ven en la página web.');
+    toast('Datos de '+emp.name+' actualizados.'+(newPass?' Contraseña cambiada — ya puede ingresar con la nueva.':' Ya se ven en la página web.'));
   }).catch(function(err){
     toast('No se pudo guardar: '+err.message,'error');
   });
