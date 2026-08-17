@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260817a';
+var APP_VERSION = '20260817b';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -77,6 +77,11 @@ body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--blue);ove
 .banner{border-radius:10px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;font-size:.82rem;line-height:1.6}
 .banner-gold{background:#fff8e1;border:2px solid var(--gold);color:#7B5800}
 .banner-blue{background:#e3f2fd;border:1px solid #90caf9;color:#1565c0}
+.revisit-card{background:#FDECEA;border:2px solid #c0392b;border-radius:10px;padding:14px;margin-bottom:12px}
+.revisit-card h4{color:#c0392b;font-size:.85rem;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.revisit-card .rv-cliente{font-weight:700;font-size:.85rem;margin-bottom:4px}
+.revisit-card .rv-texto{font-size:.8rem;color:#7a2a20;margin-bottom:10px;line-height:1.5}
+.btn-resuelto{background:#c0392b;color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:.8rem;font-weight:700;width:100%;cursor:pointer}
 .banner i{flex-shrink:0;margin-top:2px}
 
 /* ── SECTION HEAD ── */
@@ -313,6 +318,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <div class="tab-pane on" id="tab-inicio">
       <div class="banner banner-gold"><i class="fas fa-clock"></i><div>Recuerda llegar <strong>30 minutos antes</strong> del horario indicado al cliente para prepararte y comenzar puntual.</div></div>
       <div class="banner banner-blue" id="restDayBanner" style="display:none"><i class="fas fa-mug-hot"></i><div>Tu día de descanso esta semana es el <strong id="restDayText">—</strong>.</div></div>
+      <div id="revisitSection"></div>
       <div class="sec-title" style="justify-content:space-between"><span><i class="fas fa-calendar-day"></i>Servicios de Hoy</span><button id="refreshBtn" class="btn-refresh" onclick="actualizarManual()" title="Actualizar"><i class="fas fa-rotate"></i></button></div>
       <div id="todayBks"></div>
       <div class="sec-title"><i class="fas fa-chart-bar"></i>Mis Estadísticas</div>
@@ -427,8 +433,19 @@ var EMPLOYEES = {
     experience:'Nueva en el equipo QUE-K',
     phone:'',
     tags:['Hogares','Aseo General']
+  },
+  practica:{
+    password:'practica123',
+    fullName:'Empleada de Prueba',
+    photo:'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj4KPHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMxQTNBNUMiLz4KPHRleHQgeD0iMTAwIiB5PSIxMjIiIGZvbnQtZmFtaWx5PSJBcmlhbCwgSGVsdmV0aWNhLCBzYW5zLXNlcmlmIiBmb250LXNpemU9Ijc2IiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjZmZmZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QUjwvdGV4dD4KPC9zdmc+Cg==',
+    specialty:'Cuenta de práctica — para aprender a usar la app',
+    experience:'',
+    phone:'',
+    tags:['Modo práctica'],
+    banco:'Banco de Ejemplo', tipoCuenta:'Ahorros', cuenta:'0000000000'
   }
 };
+var CUENTA_PRACTICA='practica';
 
 var empKey = null;
 var emp = null;
@@ -479,6 +496,7 @@ function sheetDateOnly(v){ var s=sheetStr(v); return s.length>=10 ? s.substring(
 
 // ── TRAE LAS RESERVAS DEL SHEET (para que le aparezcan sus servicios aunque esté en otro celular) ──
 function syncBookingsFromSheet(){
+  if(empKey===CUENTA_PRACTICA) return Promise.resolve(); // cuenta de práctica: nunca toca el Sheet real
   if(!SHEET_WEBHOOK_URL) return Promise.resolve();
   return fetch(SHEET_WEBHOOK_URL+'?accion=listarReservas')
     .then(function(r){ if(!r.ok) throw new Error('status '+r.status); return r.json(); })
@@ -493,6 +511,7 @@ function syncBookingsFromSheet(){
         var asignada=sheetStr(row.empleadaAsignada);
         var pagado=row.pagoCobrado==='si';
         var estadoSheet=sheetStr(row.estado);
+        var requiereRevisita=row.requiereRevisita==='si';
         if(!existing){
           bks.push({
             id:row.id, name:sheetStr(row.nombre), phone:sheetStr(row.contacto),
@@ -503,6 +522,7 @@ function syncBookingsFromSheet(){
             assignedEmployee:asignada,
             paymentMethod:row.metodoPago||'', amountCollected:row.valorCobrado?Number(row.valorCobrado):null,
             novedad:row.novedad||'', paidOut:pagado,
+            queja:sheetStr(row.queja), requiereRevisita:requiereRevisita,
             createdAt:row.timestamp||new Date().toISOString()
           });
           return;
@@ -514,6 +534,8 @@ function syncBookingsFromSheet(){
         // no pisa "completada" ya guardada localmente (ej. si ella la marcó desde su portal antes de que el sheet reflejara el cambio)
         if(estadoSheet && existing.status!=='completada') existing.status=estadoSheet;
         if(pagado) existing.paidOut=true;
+        if(row.queja!=null) existing.queja=sheetStr(row.queja);
+        existing.requiereRevisita=requiereRevisita;
       });
       // quita las reservas que el admin haya eliminado (ya no vienen en la respuesta del Sheet)
       var sheetIds={};
@@ -521,6 +543,23 @@ function syncBookingsFromSheet(){
       bks=bks.filter(function(b){ return sheetIds[String(b.id)]; });
       saveBookings(bks);
     }).catch(function(){});
+}
+
+// ── CUENTA DE PRÁCTICA: datos de ejemplo, nunca toca el Sheet real ni envía mensajes reales ──
+function seedDemoBookings(){
+  var today=todayStr();
+  var nombre=EMPLOYEES[CUENTA_PRACTICA].fullName;
+  var demo=[
+    {id:900001, name:'Cliente de Ejemplo 1', phone:'', service:'6h', date:today, turno:'8am', address:'Calle 10 # 5-20', neighborhood:'Barrio Ejemplo', notes:'', status:'confirmada', assignedEmployee:nombre, createdAt:new Date().toISOString()},
+    {id:900002, name:'Cliente de Ejemplo 2', phone:'', service:'8h', date:today, turno:'1pm', address:'Carrera 8 # 12-34', neighborhood:'Barrio Modelo', notes:'Traer aspiradora', status:'confirmada', assignedEmployee:nombre, createdAt:new Date().toISOString()},
+    {id:900003, name:'Cliente de Ejemplo 3', phone:'', service:'6h', date:addDays(today,-6), turno:'8am', address:'Avenida 4 # 8-15', neighborhood:'Barrio Norte', notes:'', status:'completada', assignedEmployee:nombre, paymentMethod:'efectivo', amountCollected:120000, novedad:'', paidOut:false, createdAt:new Date().toISOString()},
+    {id:900004, name:'Cliente de Ejemplo 4', phone:'', service:'6h', date:addDays(today,-5), turno:'1pm', address:'Calle 20 # 3-45', neighborhood:'Barrio Sur', notes:'', status:'completada', assignedEmployee:nombre, paymentMethod:'transferencia', amountCollected:120000, novedad:'', paidOut:false, queja:'El cliente dice que faltó limpiar el baño principal', requiereRevisita:true, createdAt:new Date().toISOString()},
+    {id:900005, name:'Cliente de Ejemplo 5', phone:'', service:'8h', date:addDays(today,-4), turno:'8am', address:'Calle 15 # 9-10', neighborhood:'Barrio Occidente', notes:'', status:'completada', assignedEmployee:nombre, paymentMethod:'efectivo', amountCollected:149000, novedad:'', paidOut:false, createdAt:new Date().toISOString()},
+    {id:900006, name:'Cliente de Ejemplo 6', phone:'', service:'6h', date:addDays(today,-3), turno:'1pm', address:'Carrera 3 # 22-18', neighborhood:'Barrio Bolívar', notes:'', status:'completada', assignedEmployee:nombre, paymentMethod:'transferencia', amountCollected:120000, novedad:'', paidOut:false, createdAt:new Date().toISOString()},
+    {id:900007, name:'Cliente de Ejemplo 7', phone:'', service:'6h', date:addDays(today,-2), turno:'8am', address:'Calle 7 # 4-56', neighborhood:'Barrio La Playa', notes:'', status:'completada', assignedEmployee:nombre, paymentMethod:'efectivo', amountCollected:120000, novedad:'', paidOut:false, createdAt:new Date().toISOString()},
+    {id:900008, name:'Cliente de Ejemplo 8', phone:'', service:'8h', date:addDays(today,-1), turno:'1pm', address:'Avenida 1 # 11-22', neighborhood:'Barrio Quinta', notes:'', status:'completada', assignedEmployee:nombre, paymentMethod:'transferencia', amountCollected:149000, novedad:'', paidOut:false, createdAt:new Date().toISOString()}
+  ];
+  saveBookings(demo);
 }
 
 // ── Detecta servicios recién asignados (comparado con la última vez que los vio en este dispositivo) ──
@@ -644,18 +683,19 @@ function confirmarFinServicio(){
   var pago=EMP_PAY[b.service]?'$'+EMP_PAY[b.service].toLocaleString('es-CO'):'—';
   var metodoLabel=selectedPayMethod==='efectivo'?'Efectivo':'Transferencia';
 
-  var msg='✅ *SERVICIO TERMINADO — QUE-K Aseo*\n\n'
-    +'👷 *Empleada:* '+emp.fullName+'\n'
-    +'📋 *Servicio:* '+svcLabel+'\n'
-    +'📅 *Fecha:* '+dateLabel+'\n'
-    +'🕐 *Turno:* '+turnoLabel+'\n'
-    +'👤 *Cliente:* '+(b.name||'Sin nombre')+'\n'
-    +'📍 *Dirección:* '+(b.address||'')+', '+(b.neighborhood||'')+'\n'
-    +'💰 *Método de pago:* '+metodoLabel+'\n'
-    +'💵 *Valor cobrado:* $'+valor.toLocaleString('es-CO')+'\n'
-    +'💵 *Pago empleada:* '+pago+'\n'
-    +(novedad?'⚠️ *Novedad:* '+novedad+'\n':'')
-    +'\n_Por favor coordinar el transporte de recogida._ 🚗';
+  var msg='✅ *Servicio terminado — QUE-K*\n\n'
+    +'👷 '+emp.fullName+'\n'
+    +'🧹 '+svcLabel+' — '+dateLabel+' · '+turnoLabel+'\n'
+    +'👤 '+(b.name||'Sin nombre')+' — '+(b.address||'')+(b.neighborhood?', '+b.neighborhood:'')+'\n'
+    +'💰 '+metodoLabel+': $'+valor.toLocaleString('es-CO')+' · Tu pago: '+pago
+    +(novedad?'\n⚠️ '+novedad:'')
+    +'\n\nCoordinar recogida 🚗';
+
+  if(empKey===CUENTA_PRACTICA){
+    closeFinModal();
+    toast('✅ (Modo práctica) Así se ve cuando terminas un servicio real — no se envió ningún mensaje ni dato real.');
+    return;
+  }
 
   window.open('https://wa.me/'+WA_ADMIN+'?text='+encodeURIComponent(msg),'_blank');
 
@@ -810,6 +850,12 @@ function guardarCuenta(){
   var tipo=document.getElementById('accTipo').value;
   var numero=document.getElementById('accNumero').value.trim();
   if(!banco||!tipo||!numero){toast('Completa banco, tipo y número de cuenta.','error');return;}
+  if(empKey===CUENTA_PRACTICA){
+    emp.banco=banco; emp.tipoCuenta=tipo; emp.cuenta=numero;
+    toast('✅ (Modo práctica) Cuenta guardada solo en esta demo — no se guardó nada real.');
+    renderPayout();
+    return;
+  }
   if(!window.QuekFB || !window.QuekFB.configured){toast('Esta función todavía no está activada. Avísale al administrador.','error');return;}
   window.QuekFB.saveEmpleada(empKey,{banco:banco,tipoCuenta:tipo,cuenta:numero}).then(function(){
     emp.banco=banco; emp.tipoCuenta=tipo; emp.cuenta=numero;
@@ -932,6 +978,7 @@ function doLogout(){
 }
 
 function showDash(){
+  if(empKey===CUENTA_PRACTICA) seedDemoBookings();
   syncEmpleadaFromFB().then(function(){
     document.getElementById('hdrPhoto').src=emp.photo;
     document.getElementById('hdrName').textContent=emp.fullName;
@@ -949,7 +996,42 @@ function showDash(){
   startAutoSync();
 }
 function refreshAllViews(){
-  renderToday(); renderAll(); renderStats(); renderPayout();
+  renderToday(); renderAll(); renderStats(); renderPayout(); renderRevisitas();
+}
+// ── SERVICIOS QUE HAY QUE VOLVER A HACER (el cliente reportó una falla) ──
+function renderRevisitas(){
+  var pend=myBookings().filter(function(b){return b.requiereRevisita});
+  var el=document.getElementById('revisitSection');
+  if(!el) return;
+  if(!pend.length){ el.innerHTML=''; return; }
+  el.innerHTML=pend.map(function(b){
+    return '<div class="revisit-card">'
+      +'<h4><i class="fas fa-triangle-exclamation"></i>Hay que volver a este servicio</h4>'
+      +'<div class="rv-cliente">'+(b.name||'Cliente')+' — '+(b.address||'')+(b.neighborhood?', '+b.neighborhood:'')+'</div>'
+      +'<div class="rv-texto">'+(b.queja||'')+'</div>'
+      +'<button class="btn-resuelto" onclick="resolverRevisita('+b.id+')"><i class="fas fa-check"></i> Ya lo solucioné</button>'
+      +'</div>';
+  }).join('');
+}
+function resolverRevisita(id){
+  var bks=getBookings();
+  var b=bks.find(function(x){return x.id==id});
+  if(!b) return;
+  b.requiereRevisita=false;
+  saveBookings(bks);
+  renderRevisitas();
+  if(empKey===CUENTA_PRACTICA){
+    toast('✅ (Modo práctica) Así se marca una revisita como resuelta — no se envió ningún mensaje real.');
+    return;
+  }
+  var msg=encodeURIComponent('✅ *Revisita resuelta — QUE-K*\n\n'+emp.fullName+' ya volvió a solucionar el servicio de '+(b.name||'un cliente')+'. ¡Gracias!');
+  window.open('https://wa.me/'+WA_ADMIN+'?text='+msg,'_blank');
+  if(SHEET_WEBHOOK_URL){
+    try{
+      fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'reportarQueja', id:id, queja:b.queja||'', requiereRevisita:'no'})}).catch(function(){});
+    }catch(e){}
+  }
+  toast('¡Gracias por solucionarlo! Ya se le avisó al admin.');
 }
 function actualizarManual(){
   var btn=document.getElementById('refreshBtn');
@@ -1037,9 +1119,19 @@ function cobrarCiclo(){
     +'💵 *Total a pagar:* $'+total.toLocaleString('es-CO')+'\n\n'
     +'Por favor confirmar el pago. ¡Gracias! 💚';
 
+  var ids=lote.map(function(b){return b.id});
+
+  if(empKey===CUENTA_PRACTICA){
+    var bksDemo=getBookings();
+    bksDemo.forEach(function(b){ if(ids.indexOf(b.id)!==-1) b.paidOut=true; });
+    saveBookings(bksDemo);
+    renderPayout();
+    toast('💰 (Modo práctica) Así se ve el cobro de un ciclo — no se envió ningún mensaje ni dato real.');
+    return;
+  }
+
   window.open('https://wa.me/'+WA_PAGOS+'?text='+encodeURIComponent(msg),'_blank');
 
-  var ids=lote.map(function(b){return b.id});
   var bks=getBookings();
   bks.forEach(function(b){ if(ids.indexOf(b.id)!==-1) b.paidOut=true; });
   saveBookings(bks);

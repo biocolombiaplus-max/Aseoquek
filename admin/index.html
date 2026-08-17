@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260817b';
+var APP_VERSION = '20260817c';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -495,9 +495,6 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
           </select>
           <select id="filterEmp" onchange="renderBookings()">
             <option value="">Todas las empleadas</option>
-            <option value="María Fernanda Suárez">María Fernanda Suárez</option>
-            <option value="Luzdary Contreras">Luzdary Contreras</option>
-            <option value="Jeknaly Rey">Jeknaly Rey</option>
           </select>
           <input type="date" id="filterDate" onchange="renderBookings()">
           <button class="btn-sm navy" onclick="clearFilters()"><i class="fas fa-times"></i> Limpiar</button>
@@ -826,6 +823,26 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <div class="modal-btns">
       <button class="btn-outline-g" onclick="closeModal('condModal')">Cancelar</button>
       <button class="btn-g" onclick="saveConductor()"><i class="fas fa-save"></i>Guardar conductor</button>
+    </div>
+  </div>
+</div>
+
+<!-- QUEJA / REVISITA -->
+<div class="modal-bg" id="quejaModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-triangle-exclamation" style="color:#c0392b;margin-right:8px"></i>Reportar queja del cliente</h3>
+    <input type="hidden" id="qj_id">
+    <div class="fg"><label>¿Qué reportó el cliente? <span style="color:var(--acc)">*</span></label><textarea id="qj_texto" class="inp" rows="3" placeholder="Ej: quedaron los vidrios sucios, faltó limpiar la cocina, etc."></textarea></div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:13px;cursor:pointer">
+      <input type="checkbox" id="qj_revisita" style="width:18px;height:18px">
+      La empleada debe volver a solucionarlo
+    </label>
+    <div style="background:rgba(192,57,43,.07);border:1px solid rgba(192,57,43,.15);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--lt);margin-top:10px">
+      <i class="fas fa-info-circle" style="color:#c0392b;margin-right:5px"></i>Si marcas "debe volver", se le avisa a la empleada por WhatsApp automáticamente (sin compartirle el teléfono del cliente).
+    </div>
+    <div class="modal-btns">
+      <button class="btn-outline-g" onclick="closeModal('quejaModal')">Cancelar</button>
+      <button class="btn-g" style="background:#c0392b" onclick="guardarQueja()"><i class="fas fa-save"></i>Guardar</button>
     </div>
   </div>
 </div>
@@ -1421,6 +1438,7 @@ function renderBookings(){
       : (b.paymentMethod==='transferencia' ? ' <i class="fas fa-mobile-screen-button" style="color:var(--navy)" title="Pagado por transferencia"></i>' : '');
     var novedadBadge=b.novedad ? ' <span style="background:#FFF3CD;color:#7B5800;font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap;cursor:help" title="'+b.novedad.replace(/"/g,'&quot;')+'"><i class="fas fa-triangle-exclamation"></i> NOVEDAD</span>' : '';
     var manualBadge=b.source==='manual'?' <span style="background:rgba(26,58,92,.08);color:var(--navy);font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap" title="Agregada a mano desde el panel">MANUAL</span>':'';
+    var quejaBadge=b.requiereRevisita ? ' <span style="background:#FDECEA;color:#c0392b;font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap;cursor:help" title="'+(b.queja||'').replace(/"/g,'&quot;')+'"><i class="fas fa-rotate-left"></i> DEBE VOLVER</span>' : (b.queja ? ' <span style="background:#eee;color:#666;font-size:10px;font-weight:700;padding:2px 6px;border-radius:50px;white-space:nowrap;cursor:help" title="'+b.queja.replace(/"/g,'&quot;')+'"><i class="fas fa-circle-check"></i> QUEJA RESUELTA</span>' : '');
     var waPhone='https://wa.me/57'+String(b.phone||'').replace(/\D/g,'').replace(/^0/,'');
     var empOptions=EMPLOYEES.map(function(e){
       var r=employeeReliability(e.name);
@@ -1432,11 +1450,13 @@ function renderBookings(){
       '<button class="btn-sm navy" onclick="sendWAConfirm(\''+b.id+'\')" title="Confirmar al cliente por WhatsApp"><i class="fab fa-whatsapp"></i></button>'+
       '<button class="btn-sm acc" onclick="notifyEmployeeWA(\''+b.id+'\')" title="Enviar los datos a la empleada por WhatsApp"><i class="fas fa-paper-plane"></i></button>'+
       (b.status==='completada'?'<button class="btn-sm navy" onclick="openRecibo(\''+b.id+'\')" title="Generar recibo de pago"><i class="fas fa-receipt"></i></button>':'')+
+      (b.status==='completada'?'<button class="btn-sm" style="background:#c0392b;color:#fff" onclick="openQuejaModal(\''+b.id+'\')" title="Reportar queja del cliente"><i class="fas fa-triangle-exclamation"></i></button>':'')+
+      (b.requiereRevisita?'<button class="btn-sm g" onclick="resolverQueja(\''+b.id+'\')" title="Marcar como solucionada"><i class="fas fa-circle-check"></i></button>':'')+
       '<button class="btn-red btn-sm" onclick="deleteBk(\''+b.id+'\')" title="Eliminar"><i class="fas fa-trash"></i></button>';
 
     rowsHTML.push('<tr>'+
       '<td><strong style="color:var(--lt);font-size:11px">#'+(idx+1)+'</strong></td>'+
-      '<td><strong>'+b.name+'</strong>'+manualBadge+novedadBadge+'</td>'+
+      '<td><strong>'+b.name+'</strong>'+manualBadge+novedadBadge+quejaBadge+'</td>'+
       '<td><a href="'+waPhone+'" target="_blank" style="color:var(--g);text-decoration:none"><i class="fab fa-whatsapp"></i> '+b.phone+'</a></td>'+
       '<td><span style="font-size:12px;font-weight:600;color:var(--navy)">'+SVC_LABEL[b.service]+'</span></td>'+
       '<td>'+fmtDate(b.date)+'</td>'+
@@ -1450,7 +1470,7 @@ function renderBookings(){
       '</tr>');
 
     cardsHTML.push('<div class="bk-card-m '+statusClassAdmin(b.status)+'">'+
-      '<div class="bkm-top"><div><div class="bkm-name">'+b.name+'</div><div class="bkm-badges">'+manualBadge+novedadBadge+'</div></div><span class="bkm-num">#'+(idx+1)+'</span></div>'+
+      '<div class="bkm-top"><div><div class="bkm-name">'+b.name+'</div><div class="bkm-badges">'+manualBadge+novedadBadge+quejaBadge+'</div></div><span class="bkm-num">#'+(idx+1)+'</span></div>'+
       '<div class="bkm-row"><i class="fab fa-whatsapp"></i><a href="'+waPhone+'" target="_blank" style="color:var(--g);text-decoration:none;font-weight:600">'+b.phone+'</a></div>'+
       '<div class="bkm-row"><i class="fas fa-broom"></i>'+SVC_LABEL[b.service]+'</div>'+
       '<div class="bkm-row"><i class="fas fa-calendar-day"></i>'+fmtDate(b.date)+' · '+turnoLabel(b.turno)+'</div>'+
@@ -1476,12 +1496,21 @@ function statusClassAdmin(s){
 
 function populateEmpSelect(){
   var sel=document.getElementById('m_emp');
-  if(!sel) return;
-  var cur=sel.value;
-  sel.innerHTML='<option value="">Sin asignar</option>'+EMPLOYEES.map(function(e){
-    return'<option value="'+e.name+'">'+e.name+'</option>';
-  }).join('');
-  sel.value=cur;
+  if(sel){
+    var cur=sel.value;
+    sel.innerHTML='<option value="">Sin asignar</option>'+EMPLOYEES.map(function(e){
+      return'<option value="'+e.name+'">'+e.name+'</option>';
+    }).join('');
+    sel.value=cur;
+  }
+  var fSel=document.getElementById('filterEmp');
+  if(fSel){
+    var fCur=fSel.value;
+    fSel.innerHTML='<option value="">Todas las empleadas</option>'+EMPLOYEES.map(function(e){
+      return'<option value="'+e.name+'">'+e.name+'</option>';
+    }).join('');
+    fSel.value=fCur;
+  }
 }
 function assignEmp(id,emp){
   var bks=getBookings();
@@ -1539,6 +1568,64 @@ function clearFilters(){
   document.getElementById('filterEmp').value='';
   document.getElementById('filterDate').value='';
   renderBookings();
+}
+
+// ── QUEJA DEL CLIENTE / REVISITA ──
+function openQuejaModal(id){
+  var b=getBookings().find(function(x){return String(x.id)===String(id)});
+  if(!b) return;
+  document.getElementById('qj_id').value=id;
+  document.getElementById('qj_texto').value=b.queja||'';
+  document.getElementById('qj_revisita').checked=!!b.requiereRevisita;
+  document.getElementById('quejaModal').classList.add('open');
+}
+function guardarQueja(){
+  var id=document.getElementById('qj_id').value;
+  var texto=document.getElementById('qj_texto').value.trim();
+  var revisita=document.getElementById('qj_revisita').checked;
+  if(!texto){ toast('Escribe qué reportó el cliente.','error'); return; }
+  var bks=getBookings();
+  var b=bks.find(function(x){return String(x.id)===String(id)});
+  if(!b) return;
+  b.queja=texto;
+  b.requiereRevisita=revisita;
+  b.quejaResuelta=false;
+  setBookings(bks);
+  renderBookings();
+  closeModal('quejaModal');
+
+  if(SHEET_WEBHOOK_URL){
+    try{
+      fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'reportarQueja', id:id, queja:texto, requiereRevisita:revisita?'si':'no'})}).catch(function(){});
+    }catch(e){}
+  }
+
+  if(revisita && b.assignedEmployee){
+    var emp=EMPLOYEES.find(function(x){return x.name===b.assignedEmployee});
+    if(emp && emp.phone){
+      var msg=encodeURIComponent('⚠️ *Hay que volver — QUE-K*\n\nHola '+emp.name+', el cliente reportó una falla en este servicio y hay que solucionarlo:\n\n👤 *Cliente:* '+b.name+'\n🧹 *Servicio:* '+SVC_LABEL[b.service]+'\n📍 *Dirección:* '+b.address+', '+b.neighborhood+'\n📝 *Reportó:* '+texto+'\n\nCoordina con el administrador cuándo puedes volver. ¡Gracias! 💚');
+      window.open('https://wa.me/57'+String(emp.phone||'').replace(/\D/g,'').replace(/^0/,'')+'?text='+msg,'_blank');
+    }else{
+      toast('Queja guardada. '+(b.assignedEmployee||'La empleada')+' no tiene teléfono registrado para avisarle por WhatsApp.','error');
+      return;
+    }
+  }
+  toast('Queja guardada'+(revisita?' y se avisó a la empleada.':'.'));
+}
+function resolverQueja(id){
+  var bks=getBookings();
+  var b=bks.find(function(x){return String(x.id)===String(id)});
+  if(!b) return;
+  b.requiereRevisita=false;
+  b.quejaResuelta=true;
+  setBookings(bks);
+  renderBookings();
+  if(SHEET_WEBHOOK_URL){
+    try{
+      fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'reportarQueja', id:id, queja:b.queja||'', requiereRevisita:'no'})}).catch(function(){});
+    }catch(e){}
+  }
+  toast('Marcada como solucionada.');
 }
 function sendWAConfirm(id){
   var b=getBookings().find(function(x){return String(x.id)===String(id)});
@@ -1746,7 +1833,7 @@ function renderEmployees(){
       if(d){ saveRestScheduleLocal(restViewWeekStart,d); renderRestSchedule(); }
     }).catch(function(){});
   }
-  loadEmployeesFromFB(renderEmployeeCards);
+  loadEmployeesFromFB(function(){ renderEmployeeCards(); populateEmpSelect(); });
 }
 function initialsOf(name){
   return (name||'').trim().split(/\s+/).slice(0,2).map(function(w){return w[0]||''}).join('').toUpperCase()||'QK';
@@ -1831,6 +1918,7 @@ function saveNewEmpleada(){
     EMPLOYEES.push({id:user,name:name,role:role,img:photo,experience:exp,tags:tags,phone:phone,email:email});
     closeModal('addEmpModal');
     renderEmployeeCards();
+    populateEmpSelect();
     toast(name+' fue agregada. Ya puede entrar a su portal con el usuario "'+user+'".');
   }).catch(function(err){
     toast('No se pudo guardar: '+err.message,'error');
@@ -1845,6 +1933,7 @@ function eliminarEmpleada(id){
   }
   EMPLOYEES=EMPLOYEES.filter(function(e){return e.id!==id});
   renderEmployeeCards();
+  populateEmpSelect();
   toast(emp.name+' fue eliminada del equipo.');
 }
 
