@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260817a';
+var APP_VERSION = '20260817b';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -918,7 +918,17 @@ function syncReservationsFromSheet(manual){
         if(typeof existing.name!=='string'){ existing.name=sheetStr(existing.name); cambio=true; }
         if(cambio) updated++;
       });
-      if(added>0||updated>0){
+      // quita las que ya no están en el Sheet (se eliminaron desde otro dispositivo), dándole tiempo a las recién creadas a propagarse
+      var sheetIds={};
+      rows.forEach(function(row){ if(row.id) sheetIds[String(row.id)]=true; });
+      var beforeLen=bks.length;
+      bks=bks.filter(function(b){
+        if(sheetIds[String(b.id)]) return true;
+        var ageMs=Date.now()-new Date(b.createdAt||0).getTime();
+        return !(ageMs>=3*60*1000);
+      });
+      var removed=beforeLen-bks.length;
+      if(added>0||updated>0||removed>0){
         setBookings(bks);
         renderBookings();
         renderDashboard();
@@ -926,6 +936,7 @@ function syncReservationsFromSheet(manual){
         var partes=[];
         if(added>0) partes.push(added+(added===1?' reserva nueva':' reservas nuevas'));
         if(updated>0) partes.push(updated+(updated===1?' servicio finalizado por una empleada':' servicios finalizados por empleadas'));
+        if(removed>0) partes.push(removed+(removed===1?' reserva eliminada desde otro dispositivo':' reservas eliminadas desde otro dispositivo'));
         toast(partes.join(' y ')+' — sincronizado del sitio.');
       } else if(manual){
         toast('No hay novedades. Ya tienes las '+rows.length+' del Sheet al día.');
@@ -1513,9 +1524,14 @@ function changeStatus(id,status){
   if(b){b.status=status;setBookings(bks);updatePendBadge();toast('Estado actualizado: '+status);pushEstadoToSheet(id,status);}
 }
 function deleteBk(id){
-  if(!confirm('¿Eliminar esta reserva?'))return;
+  if(!confirm('¿Eliminar esta reserva? También se va a quitar del portal de la empleada.'))return;
   var bks=getBookings().filter(function(x){return String(x.id)!==String(id)});
   setBookings(bks);renderBookings();updatePendBadge();toast('Reserva eliminada','error');
+  if(SHEET_WEBHOOK_URL){
+    try{
+      fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'eliminarReserva', id:id})}).catch(function(){});
+    }catch(e){}
+  }
 }
 function clearFilters(){
   document.getElementById('searchBk').value='';

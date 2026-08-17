@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260812c';
+var APP_VERSION = '20260817a';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -515,6 +515,10 @@ function syncBookingsFromSheet(){
         if(estadoSheet && existing.status!=='completada') existing.status=estadoSheet;
         if(pagado) existing.paidOut=true;
       });
+      // quita las reservas que el admin haya eliminado (ya no vienen en la respuesta del Sheet)
+      var sheetIds={};
+      rows.forEach(function(row){ if(row.id) sheetIds[String(row.id)]=true; });
+      bks=bks.filter(function(b){ return sheetIds[String(b.id)]; });
       saveBookings(bks);
     }).catch(function(){});
 }
