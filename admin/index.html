@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260812e';
+var APP_VERSION = '20260817a';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -1758,6 +1758,7 @@ function renderEmployeeCards(){
     var weekEarned=weekDone.reduce(function(s,b){return s+empPay(b.service)},0);
     var totalBks=myBks.filter(function(b){return b.status!=='cancelada'}).length;
     var reliab=employeeReliability(emp.name);
+    var unpaidList=myBks.filter(function(b){return (b.status||'').toLowerCase().indexOf('complet')!==-1 && !b.paidOut});
 
     return'<div class="emp-card">'+
       '<div class="emp-top"><img class="emp-ava" src="'+emp.img+'" alt="'+emp.name+'"><div style="flex:1"><div class="emp-nm">'+emp.name+'</div><div class="emp-role">'+emp.role+'</div></div>'+
@@ -1774,6 +1775,10 @@ function renderEmployeeCards(){
       '</div>'+
       '<div class="emp-pay-info" style="margin-bottom:12px;background:rgba(0,200,150,.08);border-color:rgba(0,200,150,.2)"><h4><i class="fas fa-calendar-week" style="color:var(--g);margin-right:6px"></i>Pago de esta semana (Lun-Sáb)</h4>'+
       '<div class="pay-row"><span class="svc">'+weekDone.length+' servicio'+(weekDone.length===1?'':'s')+' completado'+(weekDone.length===1?'':'s')+'</span><span class="amount">'+fmt(weekEarned)+'</span></div>'+
+      '</div>'+
+      '<div class="emp-pay-info" style="margin-bottom:12px"><h4><i class="fas fa-hand-holding-dollar" style="color:var(--navy);margin-right:6px"></i>Ciclo de cobro (cada 6 servicios)</h4>'+
+      '<div class="pay-row"><span class="svc">Servicios completados sin cobrar</span><span class="amount" style="color:var(--navy)">'+unpaidList.length+' / 6</span></div>'+
+      (unpaidList.length>0?'<button class="btn-outline-g" style="width:100%;margin-top:8px;font-size:12px;justify-content:center" onclick="reiniciarContadorCobro(\''+emp.name.replace(/'/g,"\\'")+'\')"><i class="fas fa-rotate-left"></i> Reiniciar contador de cobro</button>':'')+
       '</div>'+
       '<div class="emp-pay-info"><h4>Tarifas de pago</h4>'+
       '<div class="pay-row"><span class="svc"><i class="fas fa-home" style="width:14px"></i> Hogar Completo (6h)</span><span class="amount">$60.000</span></div>'+
@@ -1825,6 +1830,27 @@ function eliminarEmpleada(id){
   EMPLOYEES=EMPLOYEES.filter(function(e){return e.id!==id});
   renderEmployeeCards();
   toast(emp.name+' fue eliminada del equipo.');
+}
+
+// ── REINICIAR CONTADOR DE COBRO (por si se asignó/completó algo por error y el ciclo de 6 quedó mal) ──
+function reiniciarContadorCobro(empName){
+  var bks=getBookings();
+  var pend=bks.filter(function(b){
+    return (b.assignedEmployee||'').toLowerCase()===empName.toLowerCase()
+      && (b.status||'').toLowerCase().indexOf('complet')!==-1 && !b.paidOut;
+  });
+  if(!pend.length){ toast('No hay servicios pendientes de cobro para reiniciar.'); return; }
+  if(!confirm('Vas a reiniciar el contador de cobro de '+empName+'.\n\nEsto NO envía ningún pago — solo marca sus '+pend.length+' servicio(s) pendiente(s) como ya contabilizados, para que el contador de 6 vuelva a empezar en 0. Las reservas y su historial no se borran.\n\n¿Continuar?')) return;
+  var ids=pend.map(function(b){return b.id});
+  bks.forEach(function(b){ if(ids.indexOf(b.id)!==-1) b.paidOut=true; });
+  setBookings(bks);
+  if(SHEET_WEBHOOK_URL){
+    try{
+      fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'marcarPagoCobrado', ids:ids.join(',')})}).catch(function(){});
+    }catch(e){}
+  }
+  renderEmployeeCards();
+  toast('Contador de cobro de '+empName+' reiniciado ('+pend.length+' servicio(s) marcados).');
 }
 
 // ── EDITAR EMPLEADA ──
