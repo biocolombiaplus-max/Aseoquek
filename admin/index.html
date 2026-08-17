@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260812d';
+var APP_VERSION = '20260812e';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -1500,10 +1500,17 @@ function assignEmp(id,emp){
     }
   }
 }
+// Deja el estado guardado en el Sheet para que le llegue a la empleada en su portal, así esté en otro celular
+function pushEstadoToSheet(id,estado){
+  if(!SHEET_WEBHOOK_URL) return;
+  try{
+    fetch(SHEET_WEBHOOK_URL,{method:'POST',mode:'no-cors',body:new URLSearchParams({accion:'actualizarEstado', id:id, estado:estado})}).catch(function(){});
+  }catch(e){}
+}
 function changeStatus(id,status){
   var bks=getBookings();
   var b=bks.find(function(x){return String(x.id)===String(id)});
-  if(b){b.status=status;setBookings(bks);updatePendBadge();toast('Estado actualizado: '+status)}
+  if(b){b.status=status;setBookings(bks);updatePendBadge();toast('Estado actualizado: '+status);pushEstadoToSheet(id,status);}
 }
 function deleteBk(id){
   if(!confirm('¿Eliminar esta reserva?'))return;
@@ -1533,6 +1540,7 @@ function confirmarReserva(id){
   setBookings(bks);
   renderBookings();
   updatePendBadge();
+  pushEstadoToSheet(id,'confirmada');
 
   if(!b.assignedEmployee){
     toast('Reserva confirmada. Asígnale una empleada para poder avisarle.','error');

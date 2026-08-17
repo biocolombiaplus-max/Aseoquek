@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260812b';
+var APP_VERSION = '20260812c';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -492,13 +492,14 @@ function syncBookingsFromSheet(){
         var existing=byId[String(row.id)];
         var asignada=sheetStr(row.empleadaAsignada);
         var pagado=row.pagoCobrado==='si';
+        var estadoSheet=sheetStr(row.estado);
         if(!existing){
           bks.push({
             id:row.id, name:sheetStr(row.nombre), phone:sheetStr(row.contacto),
             service:row.servicio||'6h', date:sheetDateOnly(row.fecha), turno:row.turno||'8am',
             address:sheetStr(row.direccion), neighborhood:sheetStr(row.barrio), notas:sheetStr(row.notas),
             notes:sheetStr(row.notas), email:sheetStr(row.email),
-            status: row.estado==='completada' ? 'completada' : (asignada ? 'confirmada' : 'pendiente'),
+            status: estadoSheet || (asignada ? 'confirmada' : 'pendiente'),
             assignedEmployee:asignada,
             paymentMethod:row.metodoPago||'', amountCollected:row.valorCobrado?Number(row.valorCobrado):null,
             novedad:row.novedad||'', paidOut:pagado,
@@ -510,7 +511,8 @@ function syncBookingsFromSheet(){
         existing.phone=sheetStr(row.contacto)||existing.phone;
         existing.date=sheetDateOnly(row.fecha)||existing.date;
         if(asignada) existing.assignedEmployee=asignada;
-        if(row.estado==='completada') existing.status='completada';
+        // no pisa "completada" ya guardada localmente (ej. si ella la marcó desde su portal antes de que el sheet reflejara el cambio)
+        if(estadoSheet && existing.status!=='completada') existing.status=estadoSheet;
         if(pagado) existing.paidOut=true;
       });
       saveBookings(bks);
