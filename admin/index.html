@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260817c';
+var APP_VERSION = '20260817d';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -1446,7 +1446,9 @@ function renderBookings(){
       return'<option value="'+e.name+'" '+((b.assignedEmployee===e.name)?'selected':'')+'>'+e.name+tag+'</option>';
     }).join('');
     var statusOptions=['pendiente','confirmada','en curso','completada','cancelada','incumplida'].map(function(s){return'<option value="'+s+'" '+(b.status===s?'selected':'')+'>'+(s==='incumplida'?'Incumplida (empleada)':s.charAt(0).toUpperCase()+s.slice(1))+'</option>'}).join('');
-    var actionBtns='<button class="btn-sm g" onclick="confirmarReserva(\''+b.id+'\')" title="Confirmar reserva y avisar a la empleada por correo"><i class="fas fa-check"></i></button>'+
+    var actionBtns=
+      (b.status==='pendiente'?'<button class="btn-sm g" onclick="confirmarReserva(\''+b.id+'\')" title="Confirmar reserva y avisar a la empleada por correo"><i class="fas fa-check"></i></button>':'')+
+      ((b.status==='confirmada'||b.status==='en curso')?'<button class="btn-sm" style="background:#0d9488;color:#fff" onclick="marcarCompletada(\''+b.id+'\')" title="Marcar servicio como completado"><i class="fas fa-flag-checkered"></i></button>':'')+
       '<button class="btn-sm navy" onclick="sendWAConfirm(\''+b.id+'\')" title="Confirmar al cliente por WhatsApp"><i class="fab fa-whatsapp"></i></button>'+
       '<button class="btn-sm acc" onclick="notifyEmployeeWA(\''+b.id+'\')" title="Enviar los datos a la empleada por WhatsApp"><i class="fas fa-paper-plane"></i></button>'+
       (b.status==='completada'?'<button class="btn-sm navy" onclick="openRecibo(\''+b.id+'\')" title="Generar recibo de pago"><i class="fas fa-receipt"></i></button>':'')+
@@ -1551,6 +1553,19 @@ function changeStatus(id,status){
   var bks=getBookings();
   var b=bks.find(function(x){return String(x.id)===String(id)});
   if(b){b.status=status;setBookings(bks);updatePendBadge();toast('Estado actualizado: '+status);pushEstadoToSheet(id,status);}
+}
+// ── MARCAR SERVICIO COMO COMPLETADO (acción directa, más clara que el selector de estado) ──
+function marcarCompletada(id){
+  var bks=getBookings();
+  var b=bks.find(function(x){return String(x.id)===String(id)});
+  if(!b) return;
+  if(!confirm('¿Marcar este servicio como completado?\n\nCon esto puedes generar el recibo de pago y se le suma a la empleada en su contador de cobro.')) return;
+  b.status='completada';
+  setBookings(bks);
+  updatePendBadge();
+  renderBookings();
+  pushEstadoToSheet(id,'completada');
+  toast('✅ Servicio completado. Ya puedes generar el recibo de pago.');
 }
 function deleteBk(id){
   if(!confirm('¿Eliminar esta reserva? También se va a quitar del portal de la empleada.'))return;
