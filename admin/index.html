@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20261103a';
+var APP_VERSION = '20261103b';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -674,7 +674,7 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
 
     <!-- ── PROPUESTAS Y COTIZACIONES ──────────────────────────── -->
     <div class="tab-content" id="tab-propuestas">
-      <div class="sec-hd"><h2>Propuestas y Cotizaciones</h2><button class="btn-g" onclick="openNewPropuesta()"><i class="fas fa-plus"></i>Nueva propuesta</button></div>
+      <div class="sec-hd"><h2>Propuestas y Cotizaciones</h2><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-outline-g" onclick="cargarPlantillaColegio()"><i class="fas fa-school"></i>Cargar propuesta del colegio</button><button class="btn-g" onclick="openNewPropuesta()"><i class="fas fa-plus"></i>Nueva propuesta</button></div></div>
       <div id="propuestasGrid" class="emp-grid"></div>
     </div>
 
@@ -863,8 +863,13 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <input type="hidden" id="pr_id">
     <div class="cfg-row">
       <div class="fg"><label>Cliente / Institución <span style="color:var(--acc)">*</span></label><input type="text" id="pr_cliente" class="inp" placeholder="Ej: Institución Educativa San José"></div>
-      <div class="fg"><label>Lugar de prestación</label><input type="text" id="pr_lugar" class="inp" value="Cúcuta, Norte de Santander"></div>
+      <div class="fg"><label>NIT del cliente</label><input type="text" id="pr_nit" class="inp" placeholder="Ej: 900.123.456-7"></div>
     </div>
+    <div class="cfg-row">
+      <div class="fg"><label>Correo del cliente</label><input type="email" id="pr_correo" class="inp" placeholder="contacto@colegio.edu.co"></div>
+      <div class="fg"><label>WhatsApp del cliente</label><input type="text" id="pr_whatsapp" class="inp" placeholder="300 000 0000"></div>
+    </div>
+    <div class="fg"><label>Lugar de prestación</label><input type="text" id="pr_lugar" class="inp" value="Cúcuta, Norte de Santander"></div>
     <div class="fg"><label>Título del servicio <span style="color:var(--acc)">*</span></label><input type="text" id="pr_titulo" class="inp" placeholder="Ej: Servicio profesional de aseo y mantenimiento de instalaciones"></div>
     <div class="fg"><label>Presentación / resumen</label><textarea id="pr_presentacion" class="inp" rows="3" placeholder="Párrafo breve presentando la propuesta y el propósito del servicio"></textarea></div>
     <div class="fg"><label>Alcance de actividades</label><textarea id="pr_alcance" class="inp" rows="5" placeholder="Una actividad por línea. Una línea que empiece con ## se muestra como subtítulo, ej:&#10;## Salones de clase&#10;Barrido y trapeado de pisos&#10;Limpieza de tableros y mobiliario"></textarea></div>
@@ -2471,6 +2476,9 @@ function renderPropuestas(){
 function openNewPropuesta(){
   document.getElementById('pr_id').value='';
   document.getElementById('pr_cliente').value='';
+  document.getElementById('pr_nit').value='';
+  document.getElementById('pr_correo').value='';
+  document.getElementById('pr_whatsapp').value='';
   document.getElementById('pr_lugar').value='Cúcuta, Norte de Santander';
   document.getElementById('pr_titulo').value='';
   document.getElementById('pr_presentacion').value='';
@@ -2492,15 +2500,15 @@ function openNewPropuesta(){
   document.getElementById('propModal').classList.add('open');
 }
 
-function duplicarPropuesta(id){
-  var p=getProposals().find(function(x){return x.id===id});
-  if(!p) return;
-  openNewPropuesta();
-  document.getElementById('pr_cliente').value=p.cliente;
-  document.getElementById('pr_lugar').value=p.lugar;
-  document.getElementById('pr_titulo').value=p.titulo;
-  document.getElementById('pr_presentacion').value=p.presentacion;
-  document.getElementById('pr_alcance').value=p.alcance;
+function prefillPropuestaForm(p){
+  document.getElementById('pr_cliente').value=p.cliente||'';
+  document.getElementById('pr_nit').value=p.nit||'';
+  document.getElementById('pr_correo').value=p.correo||'';
+  document.getElementById('pr_whatsapp').value=p.whatsapp||'';
+  document.getElementById('pr_lugar').value=p.lugar||'';
+  document.getElementById('pr_titulo').value=p.titulo||'';
+  document.getElementById('pr_presentacion').value=p.presentacion||'';
+  document.getElementById('pr_alcance').value=p.alcance||'';
   document.getElementById('pra_nombre').value=p.alt_a.nombre;
   document.getElementById('pra_precio').value=p.alt_a.precio;
   document.getElementById('pra_incluye').value=p.alt_a.incluye;
@@ -2517,7 +2525,44 @@ function duplicarPropuesta(id){
   }
   document.getElementById('pr_condiciones').value=p.condiciones;
   document.getElementById('pr_compromiso').value=p.compromiso;
+}
+
+function duplicarPropuesta(id){
+  var p=getProposals().find(function(x){return x.id===id});
+  if(!p) return;
+  openNewPropuesta();
+  prefillPropuestaForm(p);
   toast('Datos de "'+p.cliente+'" cargados. Ajusta lo que necesites y genera la nueva propuesta.');
+}
+
+// ── Plantilla precargada con los datos reales de la propuesta del colegio ──
+function cargarPlantillaColegio(){
+  openNewPropuesta();
+  prefillPropuestaForm({
+    cliente:'Institución educativa',
+    lugar:'Cúcuta, Norte de Santander',
+    titulo:'Servicio profesional de aseo y mantenimiento de instalaciones educativas',
+    presentacion:'QUE-K Servicios Integrales de Aseo presenta esta propuesta comercial para la prestación del servicio de limpieza, aseo y mantenimiento rutinario de las instalaciones de la institución educativa.\nNuestro propósito es garantizar espacios limpios, organizados y en condiciones adecuadas de higiene, mediante personal capacitado, procedimientos de limpieza definidos, administración del talento humano y supervisión permanente.\nLa propuesta contempla dos modalidades de contratación, de acuerdo con el alcance de los suministros y las responsabilidades operativas asumidas por QUE-K y la institución educativa.',
+    alcance:'## Características del servicio\nEdificación de tres (3) pisos, quince (15) salones de clase y una (1) batería sanitaria con catorce (14) sanitarios\nPersonal asignado: dos (2) operarias de servicios generales\nHorario propuesto: lunes a viernes, 1:00 p. m. a 7:00 p. m. (6 horas diarias por operaria)\nIntensidad total: 60 horas semanales entre las dos operarias\n## A. Salones de clase\nBarrido y trapeado de pisos\nLimpieza de tableros, mobiliario y superficies accesibles\nLimpieza de escritorios, mesas y sillas\nRetiro de residuos de papeleras\nLimpieza de puertas, manijas y superficies de contacto\nOrganización básica del área intervenida\n## B. Batería sanitaria\nLimpieza y desinfección de los catorce (14) sanitarios\nLavado y desinfección de lavamanos\nLimpieza de griferías, divisiones y superficies sanitarias\nLimpieza de espejos y superficies lavables\nLavado y trapeado de pisos\nDesinfección de puntos de contacto\nRetiro de residuos y limpieza de papeleras\nControl de olores mediante productos apropiados\n## C. Pasillos, escaleras y zonas comunes\nBarrido y trapeado de pisos\nLimpieza de pasamanos y superficies de contacto\nRetiro de residuos\nLimpieza de puertas y áreas comunes accesibles\nConservación del orden y presentación de las zonas intervenidas\n## D. Actividades periódicas\nLimpieza detallada de esquinas, zócalos y superficies de difícil acceso\nLimpieza de vidrios interiores accesibles\nLimpieza de elementos de uso frecuente\nLimpieza profunda rotativa de las áreas, de acuerdo con la programación operativa',
+    alt_a:{
+      nombre:'Servicio integral',
+      precio:8500000,
+      incluye:'Dos operarias de servicios generales\nSelección, contratación y administración del personal\nSalarios, seguridad social y prestaciones sociales\nUniformes y elementos de protección personal\nCapacitación, seguimiento y supervisión operativa\nProductos químicos de limpieza y desinfección institucional\nImplementos y equipos profesionales de aseo\nReposición ordinaria de implementos por desgaste y consumo\nAdministración y control de suministros e inventario',
+      noincluye:'Papel higiénico, jabón líquido de manos ni toallas de papel para manos — los suministra la institución educativa.',
+      pago:'Anticipo de inicio (50%): $4.250.000. Saldo del primer mes: $4.250.000.'
+    },
+    tieneB:true,
+    alt_b:{
+      nombre:'Personal y administración',
+      precio:5900000,
+      incluye:'Dos operarias de servicios generales\nSelección y contratación del personal\nSalarios, seguridad social y prestaciones sociales\nVacaciones y demás obligaciones laborales\nAfiliación a Riesgos Laborales (ARL)\nUniformes y elementos de protección personal\nCapacitación, inducción y supervisión\nCoordinación de horarios y gestión de novedades/reemplazos',
+      noincluye:'Productos químicos, implementos, herramientas y equipos de aseo — a cargo de la institución educativa.',
+      pago:'Primer período mensual al inicio del servicio o dentro de los primeros 5 días calendario. No requiere anticipo.'
+    },
+    condiciones:'Duración inicial: un (1) mes calendario desde la fecha de inicio acordada. Renovación por períodos mensuales sucesivos, previo acuerdo de las partes. Cualquiera de las partes podrá comunicar su decisión de no renovar con una anticipación mínima de 15 días calendario.\nCualquier servicio en horarios diferentes, días festivos, fines de semana o actividades extraordinarias deberá acordarse y cotizarse previamente por escrito.\nCambios sustanciales en el número de salones, sanitarios, áreas o intensidad horaria podrán requerir una revisión económica.\nValores expresados en pesos colombianos; la facturación e impuestos se manejarán conforme a la normatividad vigente.',
+    compromiso:'QUE-K Servicios Integrales de Aseo se compromete a ofrecer un servicio responsable, organizado y profesional, con personal debidamente administrado, procedimientos definidos y atención permanente a las necesidades de la institución. Buscamos establecer una relación comercial estable, en la que la institución pueda concentrarse en su actividad educativa mientras QUE-K se encarga de la gestión del servicio de aseo.'
+  });
+  toast('Propuesta del colegio precargada. Agrégale el nombre exacto, NIT, correo y WhatsApp del colegio y dale a "Generar propuesta".');
 }
 
 function eliminarPropuesta(id){
@@ -2624,9 +2669,15 @@ function propuestaHTML(p){
     +'<h1>'+p.titulo+'</h1>'
     +'<div class="cover-meta">'
     +'<div><label>Propuesta dirigida a</label><strong>'+p.cliente+'</strong></div>'
+    +(p.nit?'<div><label>NIT</label><strong>'+p.nit+'</strong></div>':'')
     +'<div><label>Lugar de prestación</label><strong>'+p.lugar+'</strong></div>'
     +'<div><label>Fecha</label><strong>'+fechaTxt+'</strong></div>'
-    +'</div></div>'
+    +'</div>'
+    +((p.correo||p.whatsapp)?'<div class="cover-meta" style="margin-top:14px">'
+      +(p.correo?'<div><label>Correo</label><strong>'+p.correo+'</strong></div>':'')
+      +(p.whatsapp?'<div><label>WhatsApp</label><strong>'+p.whatsapp+'</strong></div>':'')
+      +'</div>':'')
+    +'</div>'
     +'<div class="content">'
     +(p.presentacion?'<div class="psec"><h3>Presentación</h3><p>'+p.presentacion.replace(/\n/g,'</p><p>')+'</p></div>':'')
     +(p.alcance?'<div class="psec"><h3>Alcance de actividades</h3>'+alcanceHTML(p.alcance)+'</div>':'')
@@ -2660,6 +2711,9 @@ function guardarYGenerarPropuesta(){
     id:document.getElementById('pr_id').value||String(Date.now()),
     createdAt:new Date().toISOString(),
     cliente:cliente,
+    nit:document.getElementById('pr_nit').value.trim(),
+    correo:document.getElementById('pr_correo').value.trim(),
+    whatsapp:document.getElementById('pr_whatsapp').value.trim(),
     lugar:document.getElementById('pr_lugar').value.trim(),
     titulo:titulo,
     presentacion:document.getElementById('pr_presentacion').value.trim(),
