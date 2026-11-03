@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <script>
-var APP_VERSION = '20260817d';
+var APP_VERSION = '20261103a';
 (function(){
   fetch(location.pathname, {cache:'no-store'}).then(function(r){return r.text()}).then(function(html){
     var m = html.match(/APP_VERSION\s*=\s*'([^']+)'/);
@@ -203,6 +203,7 @@ tr:hover td{background:rgba(0,200,150,.03)}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px)}
 .modal-bg.open{display:flex}
 .modal-box{background:#fff;border-radius:18px;padding:32px;max-width:500px;width:100%;max-height:90vh;overflow-y:auto;animation:popIn .3s ease}
+.modal-box.wide{max-width:760px}
 .modal-box h3{font-size:18px;font-weight:700;color:var(--navy);margin-bottom:20px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}
 .modal-btns{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
 
@@ -406,6 +407,8 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       <div class="sb-item" onclick="showTab('contabilidad')"><i class="fas fa-chart-bar"></i> Contabilidad</div>
       <div class="sb-item" onclick="showTab('gastos')"><i class="fas fa-receipt"></i> Gastos</div>
       <div class="sb-item" onclick="showTab('transporte')"><i class="fas fa-truck"></i> Transporte</div>
+      <div class="sb-section">Comercial</div>
+      <div class="sb-item" onclick="showTab('propuestas')"><i class="fas fa-file-contract"></i> Propuestas</div>
       <div class="sb-section">Sistema</div>
       <div class="sb-item" onclick="showTab('config')"><i class="fas fa-cog"></i> Configuración</div>
       <div class="sb-item" onclick="window.open('../index.html','_blank')"><i class="fas fa-globe"></i> Ver Sitio Web</div>
@@ -669,6 +672,12 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
       </div>
     </div>
 
+    <!-- ── PROPUESTAS Y COTIZACIONES ──────────────────────────── -->
+    <div class="tab-content" id="tab-propuestas">
+      <div class="sec-hd"><h2>Propuestas y Cotizaciones</h2><button class="btn-g" onclick="openNewPropuesta()"><i class="fas fa-plus"></i>Nueva propuesta</button></div>
+      <div id="propuestasGrid" class="emp-grid"></div>
+    </div>
+
     <!-- ── CONFIGURACIÓN ──────────────────────────────────────── -->
     <div class="tab-content" id="tab-config">
       <div class="sec-hd"><h2>Configuración</h2></div>
@@ -843,6 +852,55 @@ if (firebaseConfig.apiKey.indexOf('PEGA_TU') !== 0) {
     <div class="modal-btns">
       <button class="btn-outline-g" onclick="closeModal('quejaModal')">Cancelar</button>
       <button class="btn-g" style="background:#c0392b" onclick="guardarQueja()"><i class="fas fa-save"></i>Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NUEVA PROPUESTA / COTIZACIÓN -->
+<div class="modal-bg" id="propModal">
+  <div class="modal-box wide">
+    <h3><i class="fas fa-file-contract" style="color:var(--g);margin-right:8px"></i>Nueva propuesta comercial</h3>
+    <input type="hidden" id="pr_id">
+    <div class="cfg-row">
+      <div class="fg"><label>Cliente / Institución <span style="color:var(--acc)">*</span></label><input type="text" id="pr_cliente" class="inp" placeholder="Ej: Institución Educativa San José"></div>
+      <div class="fg"><label>Lugar de prestación</label><input type="text" id="pr_lugar" class="inp" value="Cúcuta, Norte de Santander"></div>
+    </div>
+    <div class="fg"><label>Título del servicio <span style="color:var(--acc)">*</span></label><input type="text" id="pr_titulo" class="inp" placeholder="Ej: Servicio profesional de aseo y mantenimiento de instalaciones"></div>
+    <div class="fg"><label>Presentación / resumen</label><textarea id="pr_presentacion" class="inp" rows="3" placeholder="Párrafo breve presentando la propuesta y el propósito del servicio"></textarea></div>
+    <div class="fg"><label>Alcance de actividades</label><textarea id="pr_alcance" class="inp" rows="5" placeholder="Una actividad por línea. Una línea que empiece con ## se muestra como subtítulo, ej:&#10;## Salones de clase&#10;Barrido y trapeado de pisos&#10;Limpieza de tableros y mobiliario"></textarea></div>
+
+    <div style="background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.2);border-radius:10px;padding:16px;margin-top:14px">
+      <h4 style="font-size:13px;font-weight:800;color:var(--navy);margin-bottom:10px"><i class="fas fa-tag" style="color:var(--g);margin-right:6px"></i>Alternativa A</h4>
+      <div class="cfg-row">
+        <div class="fg"><label>Nombre de la alternativa</label><input type="text" id="pra_nombre" class="inp" value="Servicio integral"></div>
+        <div class="fg"><label>Valor mensual (COP) <span style="color:var(--acc)">*</span></label><input type="number" id="pra_precio" class="inp" placeholder="8500000"></div>
+      </div>
+      <div class="fg"><label>Incluye (una línea por ítem)</label><textarea id="pra_incluye" class="inp" rows="4" placeholder="Dos operarias de servicios generales&#10;Productos químicos y de desinfección&#10;Implementos y equipos profesionales"></textarea></div>
+      <div class="fg"><label>No incluye (opcional)</label><input type="text" id="pra_noincluye" class="inp" placeholder="Ej: papel higiénico, jabón de manos"></div>
+      <div class="fg"><label>Condiciones de pago</label><input type="text" id="pra_pago" class="inp" placeholder="Ej: Anticipo 50% al inicio, saldo contra el primer mes"></div>
+    </div>
+
+    <label style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:13px;cursor:pointer">
+      <input type="checkbox" id="pr_tieneB" onchange="document.getElementById('propAltB').style.display=this.checked?'block':'none'" style="width:18px;height:18px">
+      Agregar una segunda alternativa
+    </label>
+    <div id="propAltB" style="display:none;background:rgba(26,58,92,.05);border:1px solid rgba(26,58,92,.15);border-radius:10px;padding:16px;margin-top:10px">
+      <h4 style="font-size:13px;font-weight:800;color:var(--navy);margin-bottom:10px"><i class="fas fa-tag" style="color:var(--navy);margin-right:6px"></i>Alternativa B</h4>
+      <div class="cfg-row">
+        <div class="fg"><label>Nombre de la alternativa</label><input type="text" id="prb_nombre" class="inp" value="Personal y administración"></div>
+        <div class="fg"><label>Valor mensual (COP)</label><input type="number" id="prb_precio" class="inp" placeholder="5900000"></div>
+      </div>
+      <div class="fg"><label>Incluye (una línea por ítem)</label><textarea id="prb_incluye" class="inp" rows="4" placeholder="Dos operarias de servicios generales&#10;Administración laboral y supervisión"></textarea></div>
+      <div class="fg"><label>No incluye (opcional)</label><input type="text" id="prb_noincluye" class="inp" placeholder="Ej: productos e implementos de aseo"></div>
+      <div class="fg"><label>Condiciones de pago</label><input type="text" id="prb_pago" class="inp" placeholder="Ej: Pago dentro de los primeros 5 días del mes"></div>
+    </div>
+
+    <div class="fg" style="margin-top:14px"><label>Condiciones comerciales</label><textarea id="pr_condiciones" class="inp" rows="3">Duración inicial: un (1) mes, renovable por períodos mensuales previo acuerdo entre las partes. Cualquiera de las partes podrá comunicar su decisión de no renovar con una anticipación mínima de 15 días calendario.</textarea></div>
+    <div class="fg"><label>Compromiso / cierre</label><textarea id="pr_compromiso" class="inp" rows="2">QUE-K se compromete a ofrecer un servicio responsable, organizado y profesional, con personal debidamente administrado y atención permanente a las necesidades del cliente.</textarea></div>
+
+    <div class="modal-btns">
+      <button class="btn-outline-g" onclick="closeModal('propModal')">Cancelar</button>
+      <button class="btn-g" onclick="guardarYGenerarPropuesta()"><i class="fas fa-file-pdf"></i>Generar propuesta</button>
     </div>
   </div>
 </div>
@@ -1248,7 +1306,7 @@ function closeSidebar(){
 }
 
 // ── Tabs ──────────────────────────────────────────────────────
-var TAB_TITLES={dashboard:'Dashboard',reservas:'Reservas',empleadas:'Empleadas',contabilidad:'Contabilidad',gastos:'Gastos',transporte:'Transporte',config:'Configuración'};
+var TAB_TITLES={dashboard:'Dashboard',reservas:'Reservas',empleadas:'Empleadas',contabilidad:'Contabilidad',gastos:'Gastos',transporte:'Transporte',propuestas:'Propuestas',config:'Configuración'};
 function showTab(t){
   document.querySelectorAll('.tab-content').forEach(function(el){el.classList.remove('active')});
   document.querySelectorAll('.sb-item').forEach(function(el){el.classList.remove('active')});
@@ -1264,6 +1322,7 @@ function showTab(t){
   if(t==='contabilidad')renderAccounting();
   if(t==='gastos')renderExpenses();
   if(t==='transporte')renderTransporte();
+  if(t==='propuestas')renderPropuestas();
 }
 function closeModal(id){document.getElementById(id).classList.remove('open')}
 
@@ -2374,6 +2433,267 @@ function eliminarConductor(id){
   renderConductorCards();
   renderTransportePagos();
   toast(c.name+' fue eliminado de la lista.');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PROPUESTAS Y COTIZACIONES
+// ═══════════════════════════════════════════════════════════════
+var PROP_KEY='quek_proposals';
+function getProposals(){try{return JSON.parse(localStorage.getItem(PROP_KEY)||'[]')}catch(e){return[]}}
+function setProposals(a){localStorage.setItem(PROP_KEY,JSON.stringify(a))}
+
+function renderPropuestas(){
+  var props=getProposals().slice().sort(function(a,b){return (b.createdAt||'').localeCompare(a.createdAt||'')});
+  var el=document.getElementById('propuestasGrid');
+  if(!props.length){
+    el.innerHTML='<div class="tbl-empty" style="background:#fff;border-radius:12px;padding:40px 16px;text-align:center;grid-column:1/-1"><i class="fas fa-file-contract" style="font-size:28px;margin-bottom:10px;display:block;opacity:.3"></i>Aún no has creado ninguna propuesta.<br>Dale a "Nueva propuesta" para armar la primera.</div>';
+    return;
+  }
+  el.innerHTML=props.map(function(p){
+    var precioTxt=fmt(p.alt_a.precio)+(p.tieneB?' / '+fmt(p.alt_b.precio):'');
+    var fechaTxt=new Date(p.createdAt).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+    return '<div class="emp-card">'
+      +'<div class="emp-top"><div style="width:44px;height:44px;border-radius:50%;background:rgba(0,200,150,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-file-contract" style="color:var(--g);font-size:16px"></i></div>'
+      +'<div style="flex:1"><div class="emp-nm">'+p.cliente+'</div><div class="emp-role">'+p.titulo+'</div></div>'
+      +'<button class="btn-logout" title="Eliminar" onclick="eliminarPropuesta(\''+p.id+'\')" style="color:rgba(255,255,255,.7)"><i class="fas fa-trash"></i></button></div>'
+      +'<div class="emp-body">'
+      +'<div class="emp-stats" style="grid-template-columns:1fr 1fr">'
+      +'<div class="emp-stat"><span class="v" style="font-size:13px">'+precioTxt+'</span><span class="l">Valor mensual</span></div>'
+      +'<div class="emp-stat"><span class="v" style="font-size:13px">'+fechaTxt+'</span><span class="l">Creada</span></div>'
+      +'</div>'
+      +'<div style="display:flex;gap:8px;margin-top:14px">'
+      +'<button class="btn-g" style="flex:1;justify-content:center;font-size:12px" onclick="verPropuesta(\''+p.id+'\')"><i class="fas fa-file-pdf"></i>Ver / Imprimir</button>'
+      +'<button class="btn-outline-g" style="flex:1;justify-content:center;font-size:12px" onclick="duplicarPropuesta(\''+p.id+'\')"><i class="fas fa-copy"></i>Duplicar</button>'
+      +'</div></div></div>';
+  }).join('');
+}
+
+function openNewPropuesta(){
+  document.getElementById('pr_id').value='';
+  document.getElementById('pr_cliente').value='';
+  document.getElementById('pr_lugar').value='Cúcuta, Norte de Santander';
+  document.getElementById('pr_titulo').value='';
+  document.getElementById('pr_presentacion').value='';
+  document.getElementById('pr_alcance').value='';
+  document.getElementById('pra_nombre').value='Servicio integral';
+  document.getElementById('pra_precio').value='';
+  document.getElementById('pra_incluye').value='';
+  document.getElementById('pra_noincluye').value='';
+  document.getElementById('pra_pago').value='';
+  document.getElementById('pr_tieneB').checked=false;
+  document.getElementById('propAltB').style.display='none';
+  document.getElementById('prb_nombre').value='Personal y administración';
+  document.getElementById('prb_precio').value='';
+  document.getElementById('prb_incluye').value='';
+  document.getElementById('prb_noincluye').value='';
+  document.getElementById('prb_pago').value='';
+  document.getElementById('pr_condiciones').value='Duración inicial: un (1) mes, renovable por períodos mensuales previo acuerdo entre las partes. Cualquiera de las partes podrá comunicar su decisión de no renovar con una anticipación mínima de 15 días calendario.';
+  document.getElementById('pr_compromiso').value='QUE-K se compromete a ofrecer un servicio responsable, organizado y profesional, con personal debidamente administrado y atención permanente a las necesidades del cliente.';
+  document.getElementById('propModal').classList.add('open');
+}
+
+function duplicarPropuesta(id){
+  var p=getProposals().find(function(x){return x.id===id});
+  if(!p) return;
+  openNewPropuesta();
+  document.getElementById('pr_cliente').value=p.cliente;
+  document.getElementById('pr_lugar').value=p.lugar;
+  document.getElementById('pr_titulo').value=p.titulo;
+  document.getElementById('pr_presentacion').value=p.presentacion;
+  document.getElementById('pr_alcance').value=p.alcance;
+  document.getElementById('pra_nombre').value=p.alt_a.nombre;
+  document.getElementById('pra_precio').value=p.alt_a.precio;
+  document.getElementById('pra_incluye').value=p.alt_a.incluye;
+  document.getElementById('pra_noincluye').value=p.alt_a.noincluye;
+  document.getElementById('pra_pago').value=p.alt_a.pago;
+  if(p.tieneB){
+    document.getElementById('pr_tieneB').checked=true;
+    document.getElementById('propAltB').style.display='block';
+    document.getElementById('prb_nombre').value=p.alt_b.nombre;
+    document.getElementById('prb_precio').value=p.alt_b.precio;
+    document.getElementById('prb_incluye').value=p.alt_b.incluye;
+    document.getElementById('prb_noincluye').value=p.alt_b.noincluye;
+    document.getElementById('prb_pago').value=p.alt_b.pago;
+  }
+  document.getElementById('pr_condiciones').value=p.condiciones;
+  document.getElementById('pr_compromiso').value=p.compromiso;
+  toast('Datos de "'+p.cliente+'" cargados. Ajusta lo que necesites y genera la nueva propuesta.');
+}
+
+function eliminarPropuesta(id){
+  if(!confirm('¿Eliminar esta propuesta del historial?'))return;
+  setProposals(getProposals().filter(function(x){return x.id!==id}));
+  renderPropuestas();
+  toast('Propuesta eliminada','error');
+}
+
+function verPropuesta(id){
+  var p=getProposals().find(function(x){return x.id===id});
+  if(!p){toast('Propuesta no encontrada.','error');return}
+  var w=window.open('','_blank');
+  if(!w){toast('El navegador bloqueó la ventana. Permite pop-ups para este sitio.','error');return}
+  w.document.write(propuestaHTML(p));
+  w.document.close();
+}
+
+// Convierte el textarea de alcance en bloques: una línea que empieza con "## " es subtítulo, el resto son viñetas
+function alcanceHTML(texto){
+  var lineas=(texto||'').split('\n').map(function(l){return l.trim()}).filter(Boolean);
+  if(!lineas.length) return '';
+  var html='', abierto=false;
+  lineas.forEach(function(l){
+    if(l.indexOf('## ')===0){
+      if(abierto) html+='</ul>';
+      html+='<h4 class="sub">'+l.slice(3)+'</h4><ul>';
+      abierto=true;
+    }else{
+      if(!abierto){ html+='<ul>'; abierto=true; }
+      html+='<li>'+l+'</li>';
+    }
+  });
+  if(abierto) html+='</ul>';
+  return html;
+}
+function incluyeHTML(texto){
+  return (texto||'').split('\n').map(function(l){return l.trim()}).filter(Boolean).map(function(l){return '<li>'+l+'</li>'}).join('');
+}
+
+function altCardHTML(alt, esA){
+  return '<div class="palt-card '+(esA?'a':'b')+'">'
+    +'<span class="pbadge">'+alt.nombre+'</span>'
+    +'<div class="palt-price">'+fmt(alt.precio)+'<small>COP / mes</small></div>'
+    +'<ul>'+incluyeHTML(alt.incluye)+'</ul>'
+    +(alt.noincluye?'<div class="pnotincl"><strong>No incluye:</strong> '+alt.noincluye+'</div>':'')
+    +(alt.pago?'<div class="ppaybox"><strong>Condiciones de pago:</strong> '+alt.pago+'</div>':'')
+    +'</div>';
+}
+
+function propuestaHTML(p){
+  var fechaTxt=new Date(p.createdAt).toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'});
+  var altsHTML='<div class="palt-wrap">'+altCardHTML(p.alt_a,true)+(p.tieneB?altCardHTML(p.alt_b,false):'')+'</div>';
+  var aceptHTML='<div class="opt"><div class="chk"></div><div><strong>'+p.alt_a.nombre+'</strong> — Valor mensual: '+fmt(p.alt_a.precio)+'</div></div>'
+    +(p.tieneB?'<div class="opt"><div class="chk"></div><div><strong>'+p.alt_b.nombre+'</strong> — Valor mensual: '+fmt(p.alt_b.precio)+'</div></div>':'');
+
+  return '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+    +'<title>Propuesta — '+p.cliente+'</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,Helvetica,sans-serif}'
+    +'body{color:#1A3A5C;background:#eef2f6;font-size:13px;line-height:1.55}'
+    +'.sheet{max-width:760px;margin:0 auto;background:#fff}'
+    +'.cover{background:linear-gradient(160deg,#1A3A5C 0%,#0d2236 100%);color:#fff;padding:50px 40px}'
+    +'.brand{font-size:24px;font-weight:800}.brand span{color:#00C896}'
+    +'.brand-sub{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#9fb3c8;margin-top:4px}'
+    +'.cover h1{font-size:26px;font-weight:800;margin-top:40px;line-height:1.3}'
+    +'.cover-meta{margin-top:34px;display:flex;gap:30px;flex-wrap:wrap}'
+    +'.cover-meta div{font-size:11px}.cover-meta label{display:block;text-transform:uppercase;letter-spacing:1px;color:#7fa0c0;font-size:9px;margin-bottom:3px}'
+    +'.cover-meta strong{font-size:12.5px}'
+    +'.content{padding:30px 40px}'
+    +'.psec{padding:22px 0;border-bottom:1px solid #eef2f6}'
+    +'.psec:last-child{border-bottom:none}'
+    +'.psec h3{font-size:14.5px;font-weight:800;color:#1A3A5C;margin-bottom:10px}'
+    +'.psec p{margin-bottom:8px;color:#2d3e50}'
+    +'.psec ul{margin:4px 0 10px 20px}.psec li{margin-bottom:4px;color:#2d3e50;font-size:12.5px}'
+    +'.sub{font-size:11.5px;font-weight:700;color:#00916e;text-transform:uppercase;letter-spacing:.3px;margin:12px 0 4px}'
+    +'.palt-wrap{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}'
+    +'.palt-card{flex:1;min-width:220px;border:2px solid #eef2f6;border-radius:12px;padding:18px}'
+    +'.palt-card.a{border-color:#00C896;background:#f7fffb}'
+    +'.pbadge{display:inline-block;font-size:9.5px;font-weight:700;text-transform:uppercase;padding:3px 10px;border-radius:30px;background:#1A3A5C;color:#fff;margin-bottom:10px}'
+    +'.palt-card.a .pbadge{background:#00C896}'
+    +'.palt-price{font-size:22px;font-weight:800;color:#1A3A5C;margin-bottom:10px}'
+    +'.palt-card.a .palt-price{color:#00916e}'
+    +'.palt-price small{font-size:10px;font-weight:600;color:#718096;display:block}'
+    +'.palt-card ul{margin:0 0 10px 16px}.palt-card li{font-size:11px;margin-bottom:3px}'
+    +'.pnotincl{background:#FFF3CD;border:1px solid #f0d58c;border-radius:6px;padding:8px 10px;font-size:10.5px;color:#7B5800;margin-top:8px}'
+    +'.ppaybox{background:#eef2f6;border-radius:6px;padding:8px 10px;font-size:10.5px;margin-top:8px}'
+    +'.accept-box{border:2px dashed #cbd5e0;border-radius:10px;padding:18px;margin-top:8px}'
+    +'.opt{display:flex;gap:8px;margin-bottom:10px;font-size:12px}'
+    +'.chk{width:14px;height:14px;border:2px solid #1A3A5C;border-radius:4px;flex-shrink:0;margin-top:1px}'
+    +'.sign-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px 24px;margin-top:18px}'
+    +'.sign-field label{display:block;font-size:9px;text-transform:uppercase;color:#718096;margin-bottom:16px;border-bottom:1.5px solid #cbd5e0;padding-bottom:5px}'
+    +'.closing{background:#1A3A5C;color:#fff;padding:30px 40px;text-align:center}'
+    +'.closing .b2{font-size:16px;font-weight:800;margin-bottom:4px}.closing .b2 span{color:#00C896}'
+    +'.closing .tag{color:#cfe3f5;font-style:italic;font-size:11px;margin-bottom:14px}'
+    +'.crow{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;font-size:10.5px;color:#eaf2fa}'
+    +'.actions{max-width:760px;margin:16px auto;text-align:center}'
+    +'.actions button{background:#1A3A5C;color:#fff;font-weight:700;font-size:12.5px;padding:10px 20px;border:none;border-radius:8px;cursor:pointer}'
+    +'@media print{body{background:#fff}.actions{display:none}}'
+    +'</style></head><body>'
+    +'<div class="actions"><button onclick="window.print()">🖨️ Imprimir / Guardar como PDF</button></div>'
+    +'<div class="sheet">'
+    +'<div class="cover"><div class="brand">QUE-<span>K</span> SERVICIOS INTEGRALES DE ASEO</div><div class="brand-sub">Propuesta comercial</div>'
+    +'<h1>'+p.titulo+'</h1>'
+    +'<div class="cover-meta">'
+    +'<div><label>Propuesta dirigida a</label><strong>'+p.cliente+'</strong></div>'
+    +'<div><label>Lugar de prestación</label><strong>'+p.lugar+'</strong></div>'
+    +'<div><label>Fecha</label><strong>'+fechaTxt+'</strong></div>'
+    +'</div></div>'
+    +'<div class="content">'
+    +(p.presentacion?'<div class="psec"><h3>Presentación</h3><p>'+p.presentacion.replace(/\n/g,'</p><p>')+'</p></div>':'')
+    +(p.alcance?'<div class="psec"><h3>Alcance de actividades</h3>'+alcanceHTML(p.alcance)+'</div>':'')
+    +'<div class="psec"><h3>Alternativas económicas</h3>'+altsHTML+'</div>'
+    +(p.condiciones?'<div class="psec"><h3>Condiciones comerciales</h3><p>'+p.condiciones.replace(/\n/g,'</p><p>')+'</p></div>':'')
+    +(p.compromiso?'<div class="psec"><h3>Compromiso de QUE-K</h3><p>'+p.compromiso.replace(/\n/g,'</p><p>')+'</p></div>':'')
+    +'<div class="psec" style="border-bottom:none"><h3>Aceptación de la propuesta</h3>'
+    +'<div class="accept-box">'+aceptHTML
+    +'<div class="sign-grid">'
+    +'<div class="sign-field"><label>Nombre / Representante autorizado</label></div>'
+    +'<div class="sign-field"><label>Documento</label></div>'
+    +'<div class="sign-field"><label>Fecha de aceptación</label></div>'
+    +'<div class="sign-field"><label>Firma</label></div>'
+    +'</div></div></div>'
+    +'</div>'
+    +'<div class="closing"><div class="b2">QUE-<span>K</span> SERVICIOS INTEGRALES DE ASEO</div>'
+    +'<div class="tag">Calidad, confianza y compromiso con espacios limpios y seguros.</div>'
+    +'<div class="crow"><div>'+COMPANY.email+'</div><div>'+COMPANY.telefono+'</div><div>'+COMPANY.direccion+'</div></div>'
+    +'</div></div></body></html>';
+}
+
+function guardarYGenerarPropuesta(){
+  var cliente=document.getElementById('pr_cliente').value.trim();
+  var titulo=document.getElementById('pr_titulo').value.trim();
+  var precioA=Number(document.getElementById('pra_precio').value);
+  if(!cliente||!titulo){toast('El cliente y el título del servicio son obligatorios.','error');return}
+  if(!precioA){toast('Escribe el valor mensual de la Alternativa A.','error');return}
+  var tieneB=document.getElementById('pr_tieneB').checked;
+
+  var p={
+    id:document.getElementById('pr_id').value||String(Date.now()),
+    createdAt:new Date().toISOString(),
+    cliente:cliente,
+    lugar:document.getElementById('pr_lugar').value.trim(),
+    titulo:titulo,
+    presentacion:document.getElementById('pr_presentacion').value.trim(),
+    alcance:document.getElementById('pr_alcance').value.trim(),
+    alt_a:{
+      nombre:document.getElementById('pra_nombre').value.trim()||'Alternativa A',
+      precio:precioA,
+      incluye:document.getElementById('pra_incluye').value.trim(),
+      noincluye:document.getElementById('pra_noincluye').value.trim(),
+      pago:document.getElementById('pra_pago').value.trim()
+    },
+    tieneB:tieneB,
+    alt_b:tieneB?{
+      nombre:document.getElementById('prb_nombre').value.trim()||'Alternativa B',
+      precio:Number(document.getElementById('prb_precio').value)||0,
+      incluye:document.getElementById('prb_incluye').value.trim(),
+      noincluye:document.getElementById('prb_noincluye').value.trim(),
+      pago:document.getElementById('prb_pago').value.trim()
+    }:null,
+    condiciones:document.getElementById('pr_condiciones').value.trim(),
+    compromiso:document.getElementById('pr_compromiso').value.trim()
+  };
+
+  var props=getProposals();
+  props.push(p);
+  setProposals(props);
+  closeModal('propModal');
+  renderPropuestas();
+
+  var w=window.open('','_blank');
+  if(!w){toast('Propuesta guardada, pero el navegador bloqueó la ventana de impresión. Ábrela con "Ver / Imprimir".','error');return}
+  w.document.write(propuestaHTML(p));
+  w.document.close();
+  toast('Propuesta de "'+cliente+'" creada y lista para imprimir o guardar como PDF.');
 }
 
 // ═══════════════════════════════════════════════════════════════
